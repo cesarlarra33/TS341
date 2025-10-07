@@ -1,0 +1,43 @@
+ts341_example/
+
+# Environnements virtuels
+venv/
+.env/
+.env.*
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Fichiers de log
+*.log
+
+# Fichiers temporaires
+*.tmp
+*.swp
+*.swo
+
+# Build / distribution
+build/
+dist/
+*.egg-info/
+*.egg
+*.whl
+
+# Poetry
+poetry.lock
+
+# IDEs / éditeurs
+.vscode/
+.idea/
+*.iml
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db

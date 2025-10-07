@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "TS341"
+version = "0.1.0"
+description = "A python package for TS341"
+authors = [
+    "Pauline ROBLIN <problin@ensc.fr>"
+]
+readme = "README.md"
+packages = [
+    {include = "ts341_project"},
+    {include = "ts341_example"}
+]
+
+[build-system] 
+requires = ["poetry.core >=2.0.0, <3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+opencv-python = "^4.10"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4"
+
+[tool.poetry.scripts]
+main = ""
+
