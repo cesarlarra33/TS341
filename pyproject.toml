@@ -18,6 +18,8 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.dependencies]
 python = "^3.10"
 opencv-python = "^4.10"
+flask = "^3.1.2"
+
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4"
