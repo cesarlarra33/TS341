@@ -108,3 +108,50 @@ Cela nécessitent donc un modèle de détection robuste, précis et adaptable au
 Cela nécessite donc une optimisation de l'algorithme de traitement afin d’assurer un fonctionnement stable et efficace, même dans des conditions matérielles restreintes.
 
 
+# IV. Solution envisagée
+
+---
+
+## IV.1 Vision long terme (solution cible)
+
+À long terme, la solution idéale viserait à développer un système complet de détection, d’identification et de suivi automatique des drones en temps réel, capable de fonctionner dans des environnements variés et avec différentes technologies.
+
+Cette solution intègrerait :  
+- Une **détection multi-capteurs**, combinant plusieurs types de caméras afin d’améliorer la robustesse face aux conditions lumineuses et météorologiques.  
+- Un **modèle de détection basé sur l’intelligence artificielle**, entraîné sur un grand varié, représentant de nombreuses situations, afin d’obtenir la meilleure robustesse possible.  
+- Une **localisation précise des coordonnées réelles du drone dans l’espace** (type GPS), en projetant les pixels des frames  dans le repère monde.  
+- Une **intégration en temps réel**, avec une interface de visualisation affichant les positions des drones détectés à chaque instant, ainsi que l’ensemble des statistiques de détection pour aider à la prise de décision.  
+- Un **système généralisable** à tout type de drone, incluant éventuellement une reconnaissance de charges dangereuses.  
+
+L’objectif final serait de concevoir un système autonome, fiable et portable, utilisable pour la surveillance de tout type de zones.
+
+## IV.2 Prototype à réaliser dans le cadre du projet
+
+Dans le cadre du projet actuel, une version simplifiée du système sera développée afin de tester les algorithmes fondamentaux de la détection et du suivi d'objets en mouvement.  
+
+Ce prototype comprendra :  
+- Un **algorithme de traitement unique**, prenant en entrée une vidéo ou une séquence d’images issues du dataset fourni.  
+- Une **interface en sortie** fournissant la position du drone sur chaque frame de la vidéo, les coordonnées détectées ainsi que des métriques de performance sur la qualité de la détection.  
+- Une **reconnaissance basique des mouvements potentiellement dangereux**, tels que le rapprochement rapide ou une vitesse de déplacement anormalement élevée.
+- Une **sortie décisionnelle** sous forme de **booléen**, indiquant si le drone détecté présente un risque potentiel ou non. 
+- Une **infrastructure conteneurisée** (via **Docker**) garantissant la portabilité et la reproductibilité des tests.  
+- Un **suivi de trajectoire** à l’aide de modèles simples de prédiction tels que **Kalman** (ou d’autres approches équivalentes).  
+ 
+
+Ce prototype, permettra de valider la faisabilité technique du système et d’évaluer les performances des algorithmes choisis, en vue d’une intégration future sur des systèmes embarqués.
+
+## IV.3 Stratégie prévisionnelle
+1. **Prétraitement des images / vidéos**  
+Les vidéos seront d’abord prétraitées afin de faciliter la détection du drone. Les techniques vues en cours seront appliquées comme par exemple :
+     - **Ajustement de l’histogramme** et **égalisation** pour corriger les variations de luminosité.  
+     - **Normalisation** des images.
+     - **Suppression du fond** et des éléments statiques pour mettre en évidence le drone par rapport à l’environnement.  
+
+2. **Détection par flux vidéo**  
+Cette étape permettra de repérer le drone lorsqu'il est en mouvement, à l’aide d’algorithmes comme **MOG** ou d’autres méthodes de flux optique.   
+
+3. **Extraction du drone parmi les pixels en mouvement**  
+Une fois les zones mobiles détectées, un algorithme d’extraction sélectionnera les pixels correspondant spécifiquement au drone, en éliminant les faux positifs liés au bruit ou aux objets environnants. 
+
+4. **Suivi et prédiction de trajectoire**  
+Utilisation d’un **filtre de Kalman** (ou autre modèle prédictif simple) pour suivre la trajectoire du drone et prédire sa position future. Cela permettra d’anticiper les mouvements du drone et d’améliorer la précision du suivi et la détection de mouvements dangereux.  
