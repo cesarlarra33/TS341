@@ -15,51 +15,96 @@
 - ROUAULT Olivier  
 - LARRAGUETA César  
 
-**Classe :** 3A - Spécialité Robotique et Apprentissage
+**3A - Spécialité Robotique et Apprentissage**
 
 ---
+# I. Introduction
 
-### 1. Description de la compréhension du besoin
+## I.1 Contexte du projet
 L’utilisation des drones civils se développe rapidement, mais elle comporte des risques pour la sécurité et la vie privée. Il est donc crucial de pouvoir détecter et identifier les drones non autorisés sur certaines zones, à l'aide de différents types de caméras de surveillance. 
 
 Dans ce contexte, une société spécialisée dans la protection de sites sensibles a sollicité le CATIE pour concevoir un système capable de repérer les drones à partir de flux vidéo provenant de différents types de caméras.
 
-Le projet a donc pour objectif de mettre en place un dispositif qui devra permettre la détection d’un modèle de drone unique dans plusieurs situations :  
-- à diverses altitudes  
-- à différentes distances par rapport à la caméra  
-- sous des conditions d’éclairage variées  
-- avec des caméras et objectifs de technologies différentes
+## I.2 Principaux objectifs
+Le projet a pour objectif de concevoir un dispositif de détection de drones capable de fonctionner dans diverses situations :  
+- À différentes altitudes  
+- À plusieurs distances par rapport à la caméra  
+- Sous des conditions d’éclairage variées  
+- Avec des caméras et objectifs de technologies différentes  
 
-L’objectif est ainsi d’identifier, localiser et éventuellement suivre les drones en temps réel, en considérant différents environnements et conditions lumineuses.  
+L’objectif final est de **détecter, localiser et suivre** un modèle spécifique de drone en temps réel, tout en assurant la robustesse du système dans différents environnements.
 
-#### 1.1 Attentes du projet 
-**Exigences de robustesse :**  
-- Compatibilité avec toutes les technologies de caméras présentes dans le dataset.  
-- Minimiser les faux négatifs (drones non détectés).  
-- Capacité à expliquer les erreurs éventuelles autant que les réussites.  
+---
 
-**Aspects temps réel :**  
-- Détection de drones en mouvement rapide (jusqu’à 100 km/h).  
-- Même si le temps réel complet n’est pas atteignable dans le cadre du projet, la solution doit être conçue de manière à pouvoir être projetée vers du temps réel.  
+# II. Exigences
 
-**Informations attendues sur le drone :**  
-- Coordonnées du drone par rapport à la caméra.  
-- Orientation et direction du drone (prépondérante).  
-- Distance au drone (utile pour l’évaluation du risque).  
-- Possibilité de prédire la prochaine position du drone.  
+## II.1 Exigences fonctionnelles
+Le système devra remplir les fonctions suivantes :  
 
-**Critères de sécurité :**  
-- Détection à une distance critique dépendant de la hauteur et de la vitesse du drone.  
-- Évaluation de la dangerosité du drone : menace ou non pour l’environnement ou l’utilisateur.
+- **Entrée :** vidéo ou séquence d’images issues d’un dataset.  
+- **Sortie :** coordonnées ou boîte englobante du drone, métriques de performance, visualisation des résultats.  
+- **Traitement :** détection et suivi du drone.  
+- **Compatibilité :** prise en charge de plusieurs technologies de caméras (dans un premier temps un seul modèle de drone, mais extensible à d’autres modèles).  
 
-### 2. Identification des verrous technologiques
-- **Formats et tailles des vidéos :** les flux vidéo peuvent être dans des formats variés et certains fichiers peuvent être très volumineux.  
-- **Précision de la détection :** le système doit détecter tous les drones sans générer trop de fausses alertes sur d’autres objets en mouvement.  
-- **Portée de détection :** déterminer à quelle distance un drone peut être identifié avec fiabilité.
-- **Temps réel :** traiter le flux vidéo en direct sans retard significatif.  
-- **Variabilité des environnements :** gérer différents arrière-plans et éléments présents autour du drone pouvant compliquer la détection.
+---
 
-### 3. Description de la solution proposée long terme (si plus de temps)
+## II.2 Exigences de performance
+
+| **Critère** | **Objectif** | **Remarques** |
+|--------------|---------------|----------------|
+| **Précision** | Minimiser les faux négatifs | Drones de tailles et formes variables selon le point de vue ; éviter les fausses détections. |
+| **Vitesse** | Approche temps réel (objectif à long terme) | Le drone peut voler jusqu’à 100 km/h. |
+| **Portabilité** | Exécution via Docker | Solution autonome et reproductible. |
+| **Robustesse** | Résistance aux variations de caméra et de lumière | Validée sur un dataset diversifié. |
+| **Lisibilité** | Sorties claires et interprétables | Logs, statistiques et visualisations compréhensibles. |
+
+---
+
+## II.3 Contraintes techniques
+
+Le développement devra respecter les contraintes suivantes :  
+- **Poetry :** gestion des dépendances et du packaging Python.  
+- **Docker :** conteneurisation et portabilité.  
+- **Logging :** mise en place d’un système de logs structuré.  
+- **Typing :** annotations de type sur l’ensemble du code.  
+- **PEP 8 :** respect des conventions de style Python.  
+
+---
+
+## II.4 Contraintes techniques recommandées
+
+- **Tests unitaires :** utilisation de `pytest`.  
+- **Documentation :** conforme à la norme **PEP 257**.  
+- **Qualité du code :** linters `black`, `flake8`, `mypy`, `pylint`.  
+- **Automatisation :** pre-commit hooks et intégration continue (CI/CD) via GitHub Actions.  
+
+---
+
+# III. Verrous technologiques et difficultés anticipées
+
+## III.1 Liés aux données
+- **Formats vidéo lourds et variés** : cela peut compliquer leur traitement et leur stockage.  
+- **Différences entre les caméras** : certaines possèdent un objectif **fish-eye (185°)** tandis que d’autres ont un champ de vision plus restreint (**85,64°**).  
+- Certaines vidéos ne disposent pas de **filtre infrarouge (IR)** : dominante de couleur rosée qui peut perturber les algorithmes de détection.  
+- **Distance à partir de laquelle le drone devient visible**: peut fortement varier selon la résolution de la caméra et les conditions de prise.  
+
+Cela nécessite donc de préparer minutieusement le dataset et de normaliser les sources avant de les placer en entrée de l'algorithme de détection. 
  
 
-### 4. Description du prototype qui sera réalisé (dans les heures de projet)
+## III.2 Liés à la détection
+- **Taille du drone qui peut être fortement réduite** : selon la distance dans la vidéo, la détection peut devenir plus complexe.  
+- **Fonds d’image très variés et complexes** : les arbres, bâtiments, nuages, etc. augmentent considérablement le risque de fausses détections.  
+- **Déplacement statiques ou très rapides du drone** : les grosses variations de vitesse peuvent compliquer la distinction entre le bruit environnant et mouvement réel.  
+- **Risque de confusion avec d’autres objets en mouvement** : faux positifs tels que des oiseaux, des avions ou d'autres éléments du décor.  
+- **Mouvements de caméra** : si la caméra est amenée à bouger elle-même, cela peut davantage compliquer le traitement des vidéos.
+
+Cela nécessitent donc un modèle de détection robuste, précis et adaptable aux différents contextes de capture vidéo.
+
+## III.3 Liés au traitement
+- **Gérer des fichiers vidéo volumineux** : cela peut poser des problèmes de stockage et de performance.  
+- **Contraintes de traitement en temps réel**: besoin d'une détection à l'instant t, qui nécessite un traitement rapide et peu coûteux en temps de calculs. 
+- **Puissance de calcul disponible** : peut être limitée dans le cas d’une future embarcation, ce qui nécessite des algorithmes plus légers et optimisés.  
+
+Cela nécessite donc une optimisation de l'algorithme de traitement afin d’assurer un fonctionnement stable et efficace, même dans des conditions matérielles restreintes.
+
+
