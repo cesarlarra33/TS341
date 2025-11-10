@@ -98,7 +98,7 @@ Cela nécessite donc de préparer minutieusement le dataset et de normaliser les
 - **Risque de confusion avec d’autres objets en mouvement** : faux positifs tels que des oiseaux, des avions ou d'autres éléments du décor.  
 - **Mouvements de caméra** : si la caméra est amenée à bouger elle-même, cela peut davantage compliquer le traitement des vidéos.
 
-Cela nécessitent donc un modèle de détection robuste, précis et adaptable aux différents contextes de capture vidéo.
+Cela nécessite donc un modèle de détection robuste, précis et adaptable aux différents contextes de capture vidéo.
 
 ## III.3 Liés au traitement
 - **Gérer des fichiers vidéo volumineux** : cela peut poser des problèmes de stockage et de performance.  
