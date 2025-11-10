@@ -8,7 +8,6 @@ authors = [
 readme = "README.md"
 packages = [
     {include = "ts341_project"},
-    {include = "ts341_example"}
 ]
 
 [build-system] 
@@ -17,12 +16,29 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-opencv-python = "^4.10"
-flask = "^3.1.2"
+
+# Vision et traitement vidéo
+opencv-python = "^4.10"    # OpenCV pour lire, traiter, détecter sur les images/vidéos
+numpy = "^1.26"            # Calcul matriciel, base pour OpenCV et le traitement numérique
+scipy = "^1.12"            # Outils scientifiques, filtrage, interpolations, optimisation
+
+# Visualisation et interfaces
+matplotlib = "^3.8"        # Graphiques, courbes, visualisation de trajectoires et métriques
+flask = "^3.1.2"           # Interface web ou API pour exposer les résultats et visualisations
+
+# Suivi et décision
+filterpy = "^1.4"       # Filtres de Kalman et suivi de trajectoire (fork maintenu de FilterPy)
+
+# Logs
+loguru = "^0.7"            # Logs lisibles et structurés pour le suivi des traitements
 
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^7.4"
+pytest = "^7.4"   # Tests unitaires
+black = "^24.0"   # Formatage auto
+flake8 = "^6.1"   # Linter
+pylint = "^3.0"   # Analyse plus stricte
+mypy = "^1.6"     # Vérification des types
 
 [tool.poetry.scripts]
 main = ""
