@@ -140,18 +140,5 @@ Ce prototype comprendra :
 
 Ce prototype, permettra de valider la faisabilité technique du système et d’évaluer les performances des algorithmes choisis, en vue d’une intégration future sur des systèmes embarqués.
 
-## IV.3 Stratégie prévisionnelle
-1. **Prétraitement des images / vidéos**  
-Les vidéos seront d’abord prétraitées afin de faciliter la détection du drone. Les techniques vues en cours seront appliquées comme par exemple :
-     - **Ajustement de l’histogramme** et **égalisation** pour corriger les variations de luminosité.  
-     - **Normalisation** des images.
-     - **Suppression du fond** et des éléments statiques pour mettre en évidence le drone par rapport à l’environnement.  
-
-2. **Détection par flux vidéo**  
-Cette étape permettra de repérer le drone lorsqu'il est en mouvement, à l’aide d’algorithmes comme **MOG** ou d’autres méthodes de flux optique.   
-
-3. **Extraction du drone parmi les pixels en mouvement**  
-Une fois les zones mobiles détectées, un algorithme d’extraction sélectionnera les pixels correspondant spécifiquement au drone, en éliminant les faux positifs liés au bruit ou aux objets environnants. 
-
-4. **Suivi et prédiction de trajectoire**  
-Utilisation d’un **filtre de Kalman** (ou autre modèle prédictif simple) pour suivre la trajectoire du drone et prédire sa position future. Cela permettra d’anticiper les mouvements du drone et d’améliorer la précision du suivi et la détection de mouvements dangereux.  
+## V. Conclusion 
+Le projet vise d’abord à produire un prototype fonctionnel de détection et suivi de drones à partir de flux vidéo, conforme aux contraintes techniques imposées. Cette étape permettra de vérifier la faisabilité du système et d’établir une base solide pour une version embarquée plus performante et généralisable à d’autres environnements. Un rapport technique détaillera par la suite la méthodologie mise en œuvre, les performances obtenues et les perspectives d’amélioration du système.
