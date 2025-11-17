@@ -41,3 +41,8 @@ dist/
 
 # Windows
 Thumbs.db
+
+# Videos
+videos/
+*.mp4
+*.avi
