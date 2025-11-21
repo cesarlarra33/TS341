@@ -1,11 +1,14 @@
 import cv2
 import numpy as np
+import logging
 from pathlib import Path
 
 from ts341_project.ProcessingResult import ProcessingResult
 from ts341_project.pipeline.video_block.StatefulProcessingBlock import (
     StatefulProcessingBlock,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class CustomDroneBlock(StatefulProcessingBlock):
@@ -65,7 +68,7 @@ class CustomDroneBlock(StatefulProcessingBlock):
         """Charge les patterns de drone pour le matching ORB"""
         pattern_path = Path(pattern_dir)
         if not pattern_path.exists():
-            print(f"Dossier patterns introuvable: {pattern_dir}")
+            logger.warning(f"Dossier patterns introuvable: {pattern_dir}")
             return
 
         for file_path in pattern_path.glob("*"):

@@ -7,7 +7,10 @@ StorageProcess - Sauvegarde vidéo dans un processus dédié
 from multiprocessing import Process, Queue, Event
 import cv2
 import time
+import logging
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 class StorageProcess:
@@ -24,6 +27,7 @@ class StorageProcess:
         width: int,
         height: int,
         codec: str = "mp4v",
+        log_queue: Queue = None,
     ):
         """
         Args:
@@ -42,23 +46,31 @@ class StorageProcess:
         self.width = width
         self.height = height
         self.codec = codec
+        self.log_queue = log_queue
 
         # Créer dossier de sortie
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
 
     @staticmethod
     def _storage_process(
-        storage_queue, stop_event, output_path, fps, width, height, codec
+        storage_queue, stop_event, output_path, fps, width, height, codec, log_queue
     ):
         """Processus de sauvegarde"""
-        print(f"[StorageProcess] Démarrage - Sortie: {output_path}")
+        # Configurer le logging pour ce processus
+        if log_queue:
+            from ts341_project.logging_config import MultiprocessLogging
+
+            MultiprocessLogging.setup_child_process(log_queue)
+
+        logger = logging.getLogger(__name__)
+        logger.info(f"Démarrage - Sortie: {output_path}")
 
         # Créer le writer
         fourcc = cv2.VideoWriter_fourcc(*codec)
         writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height), True)
 
         if not writer.isOpened():
-            print(f"[StorageProcess] ERREUR: Impossible d'ouvrir {output_path}")
+            logger.error(f"Impossible d'ouvrir {output_path}")
             return
 
         frame_count = 0
@@ -70,7 +82,7 @@ class StorageProcess:
 
                 # Fin de stream ?
                 if isinstance(data, dict) and data.get("end_of_stream"):
-                    print("[StorageProcess] END_OF_STREAM reçu")
+                    logger.info("END_OF_STREAM reçu")
                     break
 
                 # Écrire
@@ -93,11 +105,9 @@ class StorageProcess:
                 if frame_count % 100 == 0:
                     elapsed = time.time() - start_time
                     fps_writing = frame_count / elapsed
-                    print(
-                        f"[StorageProcess] {frame_count} frames | {fps_writing:.1f} FPS"
-                    )
+                    logger.info(f"{frame_count} frames | {fps_writing:.1f} FPS")
 
-            except:
+            except Exception:
                 continue  # Queue vide
 
         writer.release()
@@ -105,12 +115,13 @@ class StorageProcess:
         elapsed = time.time() - start_time
         fps_avg = frame_count / elapsed if elapsed > 0 else 0
 
-        print(f"[StorageProcess] Arrêté - {frame_count} frames, {fps_avg:.1f} FPS")
-        print(f"[StorageProcess] Fichier: {output_path}")
+        logger.info(f"Arrêté - {frame_count} frames, {fps_avg:.1f} FPS")
+        logger.info(f"Fichier: {output_path}")
 
     def start(self):
         """Démarre le processus"""
         self.process = Process(
+            name="StorageProcess",
             target=StorageProcess._storage_process,
             args=(
                 self.storage_queue,
@@ -120,6 +131,7 @@ class StorageProcess:
                 self.width,
                 self.height,
                 self.codec,
+                self.log_queue,
             ),
         )
         self.process.start()

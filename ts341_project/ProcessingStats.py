@@ -3,7 +3,8 @@ ProcessingStats - Collecte et calcul des statistiques de traitement
 """
 
 import numpy as np
-from typing import List
+import logging
+from typing import List, Optional
 from dataclasses import dataclass, field
 
 
@@ -71,28 +72,44 @@ class ProcessingStats:
         }
 
     def print_summary(self, title: str = "Statistics de traitement"):
-        """Affiche un résumé formaté des statistiques"""
+        """Affiche un résumé formaté des statistiques (deprecated, use log_summary)"""
+        logger = logging.getLogger(__name__)
+        self.log_summary(logger, title)
+
+    def log_summary(
+        self,
+        logger: Optional[logging.Logger] = None,
+        title: str = "Statistics de traitement",
+    ):
+        """Affiche un résumé formaté des statistiques via logging"""
+        if logger is None:
+            logger = logging.getLogger(__name__)
+
         if not self.processing_times:
-            print(f"\n{'='*60}")
-            print(f"{title}")
-            print(f"{'='*60}")
-            print("Aucune donnée de traitement")
-            print(f"{'='*60}\n")
+            logger.info("")
+            logger.info("=" * 60)
+            logger.info(title)
+            logger.info("=" * 60)
+            logger.info("Aucune donnée de traitement")
+            logger.info("=" * 60)
+            logger.info("")
             return
 
         summary = self.get_summary()
 
-        print(f"\n{'='*60}")
-        print(f"{title}")
-        print(f"{'='*60}")
-        print(f"Frames traitées      : {summary['frame_count']}")
-        print(f"Temps moyen          : {summary['mean_time_ms']:.2f} ms")
-        print(f"Temps médian         : {summary['median_time_ms']:.2f} ms")
-        print(f"Temps minimum        : {summary['min_time_ms']:.2f} ms")
-        print(f"Temps maximum        : {summary['max_time_ms']:.2f} ms")
-        print(f"Écart-type           : {summary['std_time_ms']:.2f} ms")
-        print(f"FPS moyen            : {summary['avg_fps']:.1f} FPS")
-        print(f"{'='*60}\n")
+        logger.info("")
+        logger.info("=" * 60)
+        logger.info(title)
+        logger.info("=" * 60)
+        logger.info("Frames traitées      : %d", summary["frame_count"])
+        logger.info("Temps moyen          : %.2f ms", summary["mean_time_ms"])
+        logger.info("Temps médian         : %.2f ms", summary["median_time_ms"])
+        logger.info("Temps minimum        : %.2f ms", summary["min_time_ms"])
+        logger.info("Temps maximum        : %.2f ms", summary["max_time_ms"])
+        logger.info("Écart-type           : %.2f ms", summary["std_time_ms"])
+        logger.info("FPS moyen            : %.1f FPS", summary["avg_fps"])
+        logger.info("=" * 60)
+        logger.info("")
 
     def reset(self):
         """Réinitialise les statistiques"""

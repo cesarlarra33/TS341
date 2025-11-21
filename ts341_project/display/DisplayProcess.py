@@ -6,6 +6,9 @@ Affiche les frames traitées en temps réel
 
 from multiprocessing import Process, Queue, Event
 import cv2
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class DisplayProcess:
@@ -19,6 +22,7 @@ class DisplayProcess:
         stop_event: Event,
         window_name: str = "Video Processing",
         max_height: int = 1080,
+        log_queue: Queue = None,
     ):
         """
         Args:
@@ -31,16 +35,24 @@ class DisplayProcess:
         self.stop_event = stop_event
         self.window_name = window_name
         self.max_height = max_height
+        self.log_queue = log_queue
 
     @staticmethod
-    def _display_process(display_queue, stop_event, window_name, max_height):
+    def _display_process(display_queue, stop_event, window_name, max_height, log_queue):
         """Processus d'affichage"""
-        print(f"[NewDisplayProcess] Démarrage - Fenêtre: {window_name}")
+        # Configurer le logging pour ce processus
+        if log_queue:
+            from ts341_project.logging_config import MultiprocessLogging
+
+            MultiprocessLogging.setup_child_process(log_queue)
+
+        logger = logging.getLogger(__name__)
+        logger.info(f"Démarrage - Fenêtre: {window_name}")
 
         try:
             cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
         except Exception as e:
-            print(f"[NewDisplayProcess] ERREUR fenêtre: {e}")
+            logger.error(f"ERREUR fenêtre: {e}")
             return
 
         frame_count = 0
@@ -51,7 +63,7 @@ class DisplayProcess:
 
                 # Fin de stream ?
                 if isinstance(data, dict) and data.get("end_of_stream"):
-                    print("[NewDisplayProcess] END_OF_STREAM reçu")
+                    logger.info("END_OF_STREAM reçu")
                     break
 
                 # Afficher
@@ -68,30 +80,34 @@ class DisplayProcess:
                 # ESC pour quitter
                 key = cv2.waitKey(1)
                 if key == 27:
-                    print("[NewDisplayProcess] ESC pressé")
+                    logger.info("ESC pressé")
                     stop_event.set()
                     break
 
                 frame_count += 1
 
                 if frame_count % 100 == 0:
-                    print(f"[NewDisplayProcess] {frame_count} frames affichées")
+                    logger.info(f"{frame_count} frames affichées")
 
-            except:
+            except Exception:
                 continue  # Queue vide
 
         cv2.destroyWindow(window_name)
-        print(f"[NewDisplayProcess] Arrêté - {frame_count} frames affichées")
+        logger.info(f"Arrêté - {frame_count} frames affichées")
 
     def start(self):
         """Démarre le processus"""
+        # Créer un nom de processus basé sur le nom de la fenêtre
+        process_name = f"Display[{self.window_name}]"
         self.process = Process(
+            name=process_name,
             target=DisplayProcess._display_process,
             args=(
                 self.display_queue,
                 self.stop_event,
                 self.window_name,
                 self.max_height,
+                self.log_queue,
             ),
         )
         self.process.start()

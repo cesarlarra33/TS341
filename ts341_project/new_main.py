@@ -24,6 +24,7 @@ Exemples:
 
 import sys
 import argparse
+import logging
 from pathlib import Path
 from typing import Union, Type
 
@@ -31,6 +32,7 @@ from typing import Union, Type
 from ts341_project.VideoProcessor import VideoProcessor
 from ts341_project.pipeline import AVAILABLE_PIPELINES
 from ts341_project.pipeline.ProcessingPipeline import ProcessingPipeline
+from ts341_project.logging_config import setup_logging
 
 
 # ============================================================================
@@ -122,6 +124,12 @@ def main():
     """Point d'entrée principal"""
     args = parse_args()
 
+    # Configurer le logging centralisé
+    log_level = (
+        logging.DEBUG if hasattr(args, "verbose") and args.verbose else logging.INFO
+    )
+    mp_logging = setup_logging(log_level)
+
     # Déterminer la source
     try:
         source = int(args.source)
@@ -184,6 +192,7 @@ def main():
             max_display_height=args.max_height,
             realtime=args.realtime,
             codec=args.codec,
+            log_queue=mp_logging.log_queue,
         ) as processor:
             processor.wait()
 
@@ -196,6 +205,10 @@ def main():
 
         traceback.print_exc()
         sys.exit(1)
+
+    finally:
+        # Arrêter le logging multiprocessus
+        mp_logging.stop()
 
     print()
     print("=" * 60)

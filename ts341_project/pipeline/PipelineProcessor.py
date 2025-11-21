@@ -6,10 +6,13 @@ Consomme les frames, applique le pipeline, distribue aux consommateurs
 
 from multiprocessing import Process, Queue, Event
 import time
+import logging
 from typing import Union, Type
 
 from ts341_project.pipeline.ProcessingPipeline import ProcessingPipeline
 from ts341_project.ProcessingStats import ProcessingStats
+
+logger = logging.getLogger(__name__)
 
 
 class PipelineProcessor:
@@ -26,6 +29,7 @@ class PipelineProcessor:
         input_queue: Queue,
         output_queues: dict,  # {'display': Queue, 'storage': Queue}
         stop_event: Event,
+        log_queue: Queue = None,
     ):
         """
         Args:
@@ -42,11 +46,19 @@ class PipelineProcessor:
         self.input_queue = input_queue
         self.output_queues = output_queues
         self.stop_event = stop_event
+        self.log_queue = log_queue
 
     @staticmethod
-    def _processor_process(pipeline, input_queue, output_queues, stop_event):
+    def _processor_process(pipeline, input_queue, output_queues, stop_event, log_queue):
         """Processus de traitement"""
-        print("[NewPipelineProcessor] Démarré")
+        # Configurer le logging pour ce processus
+        if log_queue:
+            from ts341_project.logging_config import MultiprocessLogging
+
+            MultiprocessLogging.setup_child_process(log_queue)
+
+        logger = logging.getLogger(__name__)
+        logger.info("Démarré")
 
         frame_count = 0
         start_time = time.time()
@@ -61,7 +73,7 @@ class PipelineProcessor:
 
                 # Fin de stream ?
                 if isinstance(data, dict) and data.get("end_of_stream"):
-                    print("[NewPipelineProcessor] END_OF_STREAM reçu")
+                    logger.info("END_OF_STREAM reçu")
                     # Propager aux consommateurs
                     for queue in output_queues.values():
                         if queue is not None:
@@ -104,8 +116,8 @@ class PipelineProcessor:
                     elapsed = time.time() - start_time
                     fps = frame_count / elapsed
                     avg_process_time = stats.get_mean() * 1000  # en ms
-                    print(
-                        f"[NewPipelineProcessor] {frame_count} frames | "
+                    logger.info(
+                        f"{frame_count} frames | "
                         f"{fps:.1f} FPS | Temps traitement: {avg_process_time:.2f} ms"
                     )
 
@@ -115,16 +127,23 @@ class PipelineProcessor:
         # Afficher les stats finales
         elapsed = time.time() - start_time
         fps = frame_count / elapsed if elapsed > 0 else 0
-        print(f"[NewPipelineProcessor] Arrêté - {frame_count} frames, {fps:.1f} FPS")
+        logger.info(f"Arrêté - {frame_count} frames, {fps:.1f} FPS")
 
         # Afficher le résumé des statistiques
-        stats.print_summary("Statistiques de traitement du pipeline")
+        stats.log_summary(logger, "Statistiques de traitement du pipeline")
 
     def start(self):
         """Démarre le processus"""
         self.process = Process(
+            name="PipelineProcessor",
             target=PipelineProcessor._processor_process,
-            args=(self.pipeline, self.input_queue, self.output_queues, self.stop_event),
+            args=(
+                self.pipeline,
+                self.input_queue,
+                self.output_queues,
+                self.stop_event,
+                self.log_queue,
+            ),
         )
         self.process.start()
         return self
