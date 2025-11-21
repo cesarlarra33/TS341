@@ -8,7 +8,7 @@ from multiprocessing import Process, Queue, Event
 import cv2
 
 
-class NewDisplayProcess:
+class DisplayProcess:
     """
     Affichage multiprocessus avec OpenCV.
     """
@@ -86,7 +86,7 @@ class NewDisplayProcess:
     def start(self):
         """Démarre le processus"""
         self.process = Process(
-            target=NewDisplayProcess._display_process,
+            target=DisplayProcess._display_process,
             args=(
                 self.display_queue,
                 self.stop_event,

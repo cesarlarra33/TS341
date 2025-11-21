@@ -73,9 +73,9 @@ Exemples:
     )
 
     parser.add_argument(
-        "--display-raw",
+        "--no-display-raw",
         action="store_true",
-        help="Afficher également les frames originales (avant traitement)",
+        help="Désactiver l'affichage des frames originales (avant traitement)",
     )
 
     parser.add_argument(
@@ -138,7 +138,7 @@ def main():
 
     # Configuration
     enable_display = not args.no_display
-    enable_display_raw = args.display_raw
+    enable_display_raw = not args.no_display_raw
     enable_storage = args.save is not None
     output_path = args.save or "output.mp4"
 

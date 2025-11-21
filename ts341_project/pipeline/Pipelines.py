@@ -10,16 +10,10 @@ import numpy as np
 
 from ts341_project.ProcessingResult import ProcessingResult
 from ts341_project.pipeline.ProcessingPipeline import ProcessingPipeline
-from ts341_project.pipeline.image_block.GrayscaleBlock import GrayscaleBlock
-from ts341_project.pipeline.image_block.CannyEdgeBlock import CannyEdgeBlock
-from ts341_project.pipeline.image_block.GaussianBlurBlock import GaussianBlurBlock
-from ts341_project.pipeline.image_block.ThresholdBlock import ThresholdBlock
-from ts341_project.pipeline.image_block.MorphologyBlock import MorphologyBlock
-from ts341_project.pipeline.image_block.HistogramEqualizationBlock import (
-    HistogramEqualizationBlock,
-)
-from ts341_project.pipeline.image_block.ColorScaleBlock import ColorScaleBlock
-
+from ts341_project.pipeline.image_block import *
+from ts341_project.pipeline.video_block import *
+import os
+from pathlib import Path
 
 # ============================================================================
 # PIPELINES SIMPLES
@@ -142,6 +136,78 @@ class MorphologyPipeline(ProcessingPipeline):
         self.name = f"Morphology ({operation})"
 
 
+class CustomPipeline(ProcessingPipeline):
+    """Pipeline personnalisée avec des blocks définis par l'utilisateur"""
+
+    def __init__(self):
+        # Obtenir le répertoire patterns
+        patterns_dir = Path(__file__).parent.parent / "patterns"
+
+        # Prétraiter les images de référence avec Canny
+        preprocessed_references = {}
+        references = {}
+        if patterns_dir.exists():
+            # Créer une instance temporaire de CannyEdgeBlock pour le prétraitement
+            canny_preprocessor = CannyEdgeBlock(threshold1=100, threshold2=200)
+
+            for idx, file_path in enumerate(
+                sorted(patterns_dir.glob("*.png")), start=1
+            ):
+                # Charger l'image de référence
+                ref_image = cv2.imread(str(file_path))
+                references[f"ref{idx}"] = str(file_path)
+                if ref_image is not None:
+                    # Appliquer Canny à l'image de référence
+                    result = canny_preprocessor.process(ref_image)
+                    # Sauvegarder l'image prétraitée temporairement
+                    temp_path = patterns_dir / f"preprocessed_{file_path.name}"
+                    cv2.imwrite(str(temp_path), result.frame)
+                    preprocessed_references[f"ref{idx}"] = str(temp_path)
+
+        super().__init__(
+            blocks=[
+                # Ajouter ici les blocks personnalisés
+                # BackgroundSubtractorBlock(
+                #     history=250, varThreshold=20, detectShadows=False
+                # ),
+                # CannyEdgeBlock(threshold1=100, threshold2=200),
+                OrbBlock(
+                    draw_results=True,
+                    references=references,
+                ),
+            ]
+        )
+        self.name = "Custom Pipeline"
+
+
+class DronePipeline(ProcessingPipeline):
+    """Pipeline de détection de drone avec MOG2 + ORB matching"""
+
+    def __init__(self, pattern_dir: str = None, min_matches: int = 10):
+        """
+        Args:
+            pattern_dir: Chemin vers le dossier contenant les patterns de drone
+            min_matches: Nombre minimum de matches ORB pour confirmer un drone
+        """
+        # Si pas de pattern_dir fourni, utiliser le dossier patterns par défaut
+        if pattern_dir is None:
+            pattern_dir = str(Path(__file__).parent / "patterns")
+
+        super().__init__(
+            blocks=[
+                CustomDroneBlock(
+                    pattern_dir=pattern_dir,
+                    min_matches=min_matches,
+                    mog2_history=500,
+                    mog2_var_threshold=20,
+                    orb_n_features=500,
+                    min_contour_size=5,
+                ),
+            ]
+        )
+        self.name = "Drone Detection (MOG2 + ORB)"
+
+
 # ============================================================================
 # FACTORY DE PIPELINES
 # ============================================================================
@@ -155,6 +221,8 @@ AVAILABLE_PIPELINES = {
     "histogram": HistogramEqualizationPipeline,
     "edge-enhance": EdgeEnhancementPipeline,
     "morphology": MorphologyPipeline,
+    "custom": CustomPipeline,
+    "drone": DronePipeline,
 }
 
 

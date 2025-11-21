@@ -2,8 +2,12 @@ import numpy as np
 from typing import List
 from abc import abstractmethod
 
-from pipeline.image_block import ProcessingBlock, GaussianBlurBlock, GrayscaleBlock
-from ProcessingResult import ProcessingResult
+from ts341_project.pipeline.image_block import (
+    ProcessingBlock,
+    GaussianBlurBlock,
+    GrayscaleBlock,
+)
+from ts341_project.ProcessingResult import ProcessingResult
 
 
 class StatefulProcessingBlock(ProcessingBlock):
@@ -44,8 +48,7 @@ class StatefulProcessingBlock(ProcessingBlock):
         Par défaut: Flou gaussien LÉGER + conversion en niveaux de gris
         OPTIMISÉ pour temps réel: noyau réduit à 5x5 au lieu de 21x21
         """
-        from pipeline.image_block.GaussianBlurBlock import GaussianBlurBlock
-        from pipeline.image_block.GrayscaleBlock import GrayscaleBlock
+        from ts341_project.pipeline.image_block import GaussianBlurBlock, GrayscaleBlock
 
         # OPTIMISATION: noyau 5x5 au lieu de 21x21 pour la webcam temps réel
         return [GaussianBlurBlock(kernel_size=(5, 5)), GrayscaleBlock()]

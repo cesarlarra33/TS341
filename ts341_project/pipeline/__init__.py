@@ -15,7 +15,6 @@ from .Pipelines import (
     HistogramEqualizationPipeline,
     EdgeEnhancementPipeline,
     MorphologyPipeline,
-    DualDisplayPipeline,
 )
 
 __all__ = [
@@ -31,5 +30,4 @@ __all__ = [
     "HistogramEqualizationPipeline",
     "EdgeEnhancementPipeline",
     "MorphologyPipeline",
-    "DualDisplayPipeline",
 ]

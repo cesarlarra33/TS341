@@ -1,5 +1,5 @@
 """
-NewVideoProcessor - Orchestrateur multiprocessus propre
+VideoProcessor - Orchestrateur multiprocessus propre
 
 Composition de tous les processus avec architecture statique pour éviter les problèmes de pickling.
 """
@@ -12,8 +12,8 @@ import time
 from ts341_project.VideoReader import VideoReader
 from ts341_project.pipeline.PipelineProcessor import PipelineProcessor
 from ts341_project.pipeline.ProcessingPipeline import ProcessingPipeline
-from ts341_project.display import NewDisplayProcess
-from ts341_project.storage import NewStorageProcess
+from ts341_project.display import DisplayProcess
+from ts341_project.storage import StorageProcess
 
 
 class VideoProcessor:
@@ -108,15 +108,15 @@ class VideoProcessor:
 
     def start(self):
         """Démarre tous les processus"""
-        print("[NewVideoProcessor] Initialisation...")
+        print("[VideoProcessor] Initialisation...")
 
         # Détecter propriétés
         width, height, fps, is_webcam = self._detect_video_properties()
 
-        print(f"[NewVideoProcessor] Source: {self.source}")
-        print(f"[NewVideoProcessor] Résolution: {width}x{height} @ {fps} FPS")
+        print(f"[VideoProcessor] Source: {self.source}")
+        print(f"[VideoProcessor] Résolution: {width}x{height} @ {fps} FPS")
         print(
-            f"[NewVideoProcessor] Display Processed: {self.enable_display}, "
+            f"[VideoProcessor] Display Processed: {self.enable_display}, "
             f"Display Raw: {self.enable_display_raw}, Storage: {self.enable_storage}"
         )
 
@@ -124,7 +124,7 @@ class VideoProcessor:
 
         # Display RAW (frames originales, direct depuis reader)
         if self.enable_display_raw:
-            display_raw = NewDisplayProcess(
+            display_raw = DisplayProcess(
                 display_queue=self.raw_display_queue,
                 stop_event=self.stop_event,
                 window_name=self.display_raw_window,
@@ -132,11 +132,11 @@ class VideoProcessor:
             )
             display_raw.start()
             self.processes.append(display_raw)
-            print("[NewVideoProcessor] Display Raw démarré")
+            print("[VideoProcessor] Display Raw démarré")
 
         # Display PROCESSED (frames traitées, depuis processor)
         if self.enable_display:
-            display = NewDisplayProcess(
+            display = DisplayProcess(
                 display_queue=self.output_queues["display"],
                 stop_event=self.stop_event,
                 window_name=self.display_window,
@@ -144,10 +144,10 @@ class VideoProcessor:
             )
             display.start()
             self.processes.append(display)
-            print("[NewVideoProcessor] Display Processed démarré")
+            print("[VideoProcessor] Display Processed démarré")
 
         if self.enable_storage:
-            storage = NewStorageProcess(
+            storage = StorageProcess(
                 storage_queue=self.output_queues["storage"],
                 stop_event=self.stop_event,
                 output_path=self.output_path,
@@ -158,7 +158,7 @@ class VideoProcessor:
             )
             storage.start()
             self.processes.append(storage)
-            print("[NewVideoProcessor] Storage démarré")
+            print("[VideoProcessor] Storage démarré")
 
         # 2. Créer le processor
         processor = PipelineProcessor(
@@ -169,7 +169,7 @@ class VideoProcessor:
         )
         processor.start()
         self.processes.append(processor)
-        print("[NewVideoProcessor] Processor démarré")
+        print("[VideoProcessor] Processor démarré")
 
         # 3. Créer le reader (producteur) en dernier
         time.sleep(0.5)  # Laisser temps aux consommateurs
@@ -182,25 +182,25 @@ class VideoProcessor:
         )
         reader.start()
         self.processes.append(reader)
-        print("[NewVideoProcessor] Reader démarré")
+        print("[VideoProcessor] Reader démarré")
 
-        print("[NewVideoProcessor] Tous les processus actifs ✓")
+        print("[VideoProcessor] Tous les processus actifs ✓")
         return self
 
     def wait(self):
         """Attend la fin de tous les processus"""
-        print("[NewVideoProcessor] En attente de fin...")
+        print("[VideoProcessor] En attente de fin...")
         try:
             for proc in self.processes:
                 if hasattr(proc, "process"):
                     proc.process.join()
         except KeyboardInterrupt:
-            print("\n[NewVideoProcessor] Interruption utilisateur")
+            print("\n[VideoProcessor] Interruption utilisateur")
             self.stop()
 
     def stop(self):
         """Arrête tous les processus"""
-        print("[NewVideoProcessor] Arrêt demandé...")
+        print("[VideoProcessor] Arrêt demandé...")
         self.stop_event.set()
 
         # Arrêter dans l'ordre inverse
@@ -208,7 +208,7 @@ class VideoProcessor:
             if hasattr(proc, "stop"):
                 proc.stop()
 
-        print("[NewVideoProcessor] Tous les processus arrêtés")
+        print("[VideoProcessor] Tous les processus arrêtés")
 
     def __enter__(self):
         """Support context manager"""

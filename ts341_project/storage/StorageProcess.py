@@ -1,5 +1,5 @@
 """
-NewStorageProcess - Sauvegarde vidéo dans un processus dédié
+StorageProcess - Sauvegarde vidéo dans un processus dédié
 
 Écrit les frames traitées dans un fichier vidéo
 """
@@ -10,7 +10,7 @@ import time
 from pathlib import Path
 
 
-class NewStorageProcess:
+class StorageProcess:
     """
     Sauvegarde vidéo multiprocessus.
     """
@@ -51,14 +51,14 @@ class NewStorageProcess:
         storage_queue, stop_event, output_path, fps, width, height, codec
     ):
         """Processus de sauvegarde"""
-        print(f"[NewStorageProcess] Démarrage - Sortie: {output_path}")
+        print(f"[StorageProcess] Démarrage - Sortie: {output_path}")
 
         # Créer le writer
         fourcc = cv2.VideoWriter_fourcc(*codec)
         writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height), True)
 
         if not writer.isOpened():
-            print(f"[NewStorageProcess] ERREUR: Impossible d'ouvrir {output_path}")
+            print(f"[StorageProcess] ERREUR: Impossible d'ouvrir {output_path}")
             return
 
         frame_count = 0
@@ -70,7 +70,7 @@ class NewStorageProcess:
 
                 # Fin de stream ?
                 if isinstance(data, dict) and data.get("end_of_stream"):
-                    print("[NewStorageProcess] END_OF_STREAM reçu")
+                    print("[StorageProcess] END_OF_STREAM reçu")
                     break
 
                 # Écrire
@@ -94,7 +94,7 @@ class NewStorageProcess:
                     elapsed = time.time() - start_time
                     fps_writing = frame_count / elapsed
                     print(
-                        f"[NewStorageProcess] {frame_count} frames | {fps_writing:.1f} FPS"
+                        f"[StorageProcess] {frame_count} frames | {fps_writing:.1f} FPS"
                     )
 
             except:
@@ -105,13 +105,13 @@ class NewStorageProcess:
         elapsed = time.time() - start_time
         fps_avg = frame_count / elapsed if elapsed > 0 else 0
 
-        print(f"[NewStorageProcess] Arrêté - {frame_count} frames, {fps_avg:.1f} FPS")
-        print(f"[NewStorageProcess] Fichier: {output_path}")
+        print(f"[StorageProcess] Arrêté - {frame_count} frames, {fps_avg:.1f} FPS")
+        print(f"[StorageProcess] Fichier: {output_path}")
 
     def start(self):
         """Démarre le processus"""
         self.process = Process(
-            target=NewStorageProcess._storage_process,
+            target=StorageProcess._storage_process,
             args=(
                 self.storage_queue,
                 self.stop_event,

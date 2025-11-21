@@ -2,9 +2,11 @@ import cv2
 import numpy as np
 from typing import List
 
-from pipeline.image_block import ProcessingBlock
-from pipeline.video_block.StatefulProcessingBlock import StatefulProcessingBlock
-from ProcessingResult import ProcessingResult
+from ts341_project.pipeline.image_block.ProcessingBlock import ProcessingBlock
+from ts341_project.pipeline.video_block.StatefulProcessingBlock import (
+    StatefulProcessingBlock,
+)
+from ts341_project.ProcessingResult import ProcessingResult
 
 
 class BackgroundSubtractorBlock(StatefulProcessingBlock):
@@ -13,8 +15,8 @@ class BackgroundSubtractorBlock(StatefulProcessingBlock):
     def __init__(
         self,
         history: int = 500,
-        var_threshold: int = 16,
-        detect_shadows: bool = True,
+        varThreshold: int = 16,
+        detectShadows: bool = True,
         preprocessing: List[ProcessingBlock] = None,
         postprocessing: List[ProcessingBlock] = None,
     ):
@@ -29,7 +31,7 @@ class BackgroundSubtractorBlock(StatefulProcessingBlock):
         super().__init__(preprocessing=preprocessing, postprocessing=postprocessing)
 
         self.bg_subtractor = cv2.createBackgroundSubtractorMOG2(
-            history=history, varThreshold=var_threshold, detectShadows=detect_shadows
+            history=history, varThreshold=varThreshold, detectShadows=detectShadows
         )
 
     def process_with_memory(

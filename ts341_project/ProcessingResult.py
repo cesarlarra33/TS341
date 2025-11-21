@@ -15,6 +15,8 @@ class ProcessingResult:
     )  # [(x, y, w, h), ...]
     metadata: Dict[str, Any] = field(default_factory=dict)
     processing_time: float = 0.0
+    # confiance
+    # expliquer dans quels cas ça fonctionne bien ou pas (conditions lumineuses, type de mouvement, etc.)
 
     def add_box(self, x: int, y: int, w: int, h: int):
         """Ajoute des coordonnées de boîte englobante"""
