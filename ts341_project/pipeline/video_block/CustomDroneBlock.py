@@ -20,6 +20,7 @@ class CustomDroneBlock(StatefulProcessingBlock):
         self,
         pattern_dir: str = None,
         min_matches: int = 10,
+        resize_width: int = 1024,
         mog2_history: int = 500,
         mog2_var_threshold: int = 20,
         orb_n_features: int = 500,
@@ -41,6 +42,7 @@ class CustomDroneBlock(StatefulProcessingBlock):
         # Paramètres
         self.min_matches = min_matches
         self.min_contour_size = min_contour_size
+        self.resize_width = resize_width
 
         # Initialisation MOG2
         self.back_sub = cv2.createBackgroundSubtractorMOG2(
@@ -95,6 +97,7 @@ class CustomDroneBlock(StatefulProcessingBlock):
         Returns:
             ProcessingResult avec les détections dessinées
         """
+
         # S'assurer qu'on a une image BGR pour MOG2
         if len(frame.shape) == 2:
             # Frame en grayscale, convertir en BGR
@@ -102,6 +105,14 @@ class CustomDroneBlock(StatefulProcessingBlock):
 
         # Convertir en niveaux de gris pour ORB
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        w_in = gray.shape[1]
+        h_in = gray.shape[0]
+        target_w = self.resize_width
+        target_h = int(h_in * target_w / w_in)
+
+        frame = cv2.resize(frame, (target_w, target_h))
+        # gray = cv2.resize(gray, (target_w, target_h))
 
         # --- Détection de mouvement avec MOG2 ---
         fg_mask = self.back_sub.apply(frame)

@@ -9,6 +9,7 @@ import time
 from typing import Union, Type
 
 from ts341_project.pipeline.ProcessingPipeline import ProcessingPipeline
+from ts341_project.ProcessingStats import ProcessingStats
 
 
 class PipelineProcessor:
@@ -50,6 +51,9 @@ class PipelineProcessor:
         frame_count = 0
         start_time = time.time()
 
+        # Initialiser les stats
+        stats = ProcessingStats()
+
         while not stop_event.is_set():
             try:
                 # Récupérer frame
@@ -59,11 +63,11 @@ class PipelineProcessor:
                 if isinstance(data, dict) and data.get("end_of_stream"):
                     print("[NewPipelineProcessor] END_OF_STREAM reçu")
                     # Propager aux consommateurs
-                    for name, queue in output_queues.items():
+                    for queue in output_queues.values():
                         if queue is not None:
                             try:
                                 queue.put({"end_of_stream": True}, timeout=1.0)
-                            except:
+                            except Exception:
                                 pass
                     break
 
@@ -71,7 +75,13 @@ class PipelineProcessor:
                 frame = data["frame"]
                 frame_number = data["frame_number"]
 
+                # Mesurer le temps de traitement
+                process_start = time.time()
                 result = pipeline.process(frame)
+                process_time = time.time() - process_start
+
+                # Enregistrer le temps de traitement
+                stats.add_time(process_time)
                 frame_count += 1
 
                 # Distribuer
@@ -79,29 +89,36 @@ class PipelineProcessor:
                     "frame": result.frame,
                     "frame_number": frame_number,
                     "metadata": result.metadata,
+                    "processing_time": process_time,
                 }
 
-                for name, queue in output_queues.items():
+                for queue in output_queues.values():
                     if queue is not None:
                         try:
                             queue.put_nowait(output_data)
-                        except:
+                        except Exception:
                             pass  # Queue pleine
 
-                # Stats
+                # Stats intermédiaires
                 if frame_count % 100 == 0:
                     elapsed = time.time() - start_time
                     fps = frame_count / elapsed
+                    avg_process_time = stats.get_mean() * 1000  # en ms
                     print(
-                        f"[NewPipelineProcessor] {frame_count} frames | {fps:.1f} FPS"
+                        f"[NewPipelineProcessor] {frame_count} frames | "
+                        f"{fps:.1f} FPS | Temps traitement: {avg_process_time:.2f} ms"
                     )
 
-            except:
+            except Exception:
                 continue  # Queue vide, on continue
 
+        # Afficher les stats finales
         elapsed = time.time() - start_time
         fps = frame_count / elapsed if elapsed > 0 else 0
         print(f"[NewPipelineProcessor] Arrêté - {frame_count} frames, {fps:.1f} FPS")
+
+        # Afficher le résumé des statistiques
+        stats.print_summary("Statistiques de traitement du pipeline")
 
     def start(self):
         """Démarre le processus"""

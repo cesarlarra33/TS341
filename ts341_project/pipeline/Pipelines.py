@@ -171,10 +171,10 @@ class CustomPipeline(ProcessingPipeline):
                 #     history=250, varThreshold=20, detectShadows=False
                 # ),
                 # CannyEdgeBlock(threshold1=100, threshold2=200),
-                OrbBlock(
-                    draw_results=True,
-                    references=references,
-                ),
+                # OrbBlock(
+                #     draw_results=True,
+                #     references=references,
+                # ),
             ]
         )
         self.name = "Custom Pipeline"
@@ -183,7 +183,7 @@ class CustomPipeline(ProcessingPipeline):
 class DronePipeline(ProcessingPipeline):
     """Pipeline de détection de drone avec MOG2 + ORB matching"""
 
-    def __init__(self, pattern_dir: str = None, min_matches: int = 10):
+    def __init__(self, pattern_dir: str = None):
         """
         Args:
             pattern_dir: Chemin vers le dossier contenant les patterns de drone
@@ -197,11 +197,12 @@ class DronePipeline(ProcessingPipeline):
             blocks=[
                 CustomDroneBlock(
                     pattern_dir=pattern_dir,
-                    min_matches=min_matches,
+                    min_matches=5,
+                    resize_width=2048,
                     mog2_history=500,
                     mog2_var_threshold=20,
                     orb_n_features=500,
-                    min_contour_size=5,
+                    min_contour_size=30,
                 ),
             ]
         )
@@ -221,7 +222,7 @@ AVAILABLE_PIPELINES = {
     "histogram": HistogramEqualizationPipeline,
     "edge-enhance": EdgeEnhancementPipeline,
     "morphology": MorphologyPipeline,
-    "custom": CustomPipeline,
+    # "custom": CustomPipeline,
     "drone": DronePipeline,
 }
 
