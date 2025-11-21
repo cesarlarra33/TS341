@@ -38,6 +38,7 @@ Afficher la vidéo de la webcam avec le pipeline "edge-enhance" :
 
 ```bash
 python new_main.py 0 --pipeline edge-enhance
+poetry run multiprocess
 ```
 
 Traiter un fichier vidéo et sauvegarder le résultat :

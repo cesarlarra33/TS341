@@ -15,7 +15,6 @@ from .Pipelines import (
     HistogramEqualizationPipeline,
     EdgeEnhancementPipeline,
     MorphologyPipeline,
-    DualDisplayPipeline,
 )
 
 __all__ = [

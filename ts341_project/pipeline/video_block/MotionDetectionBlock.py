@@ -2,11 +2,11 @@ import cv2
 import numpy as np
 from typing import List
 
-from pipeline.image_block.GaussianBlurBlock import GaussianBlurBlock
-from pipeline.image_block.GrayscaleBlock import GrayscaleBlock
-from pipeline.image_block import ProcessingBlock
-from pipeline.video_block.StatefulProcessingBlock import StatefulProcessingBlock
-from ProcessingResult import ProcessingResult
+from ts341_project.pipeline.image_block.GaussianBlurBlock import GaussianBlurBlock
+from ts341_project.pipeline.image_block.GrayscaleBlock import GrayscaleBlock
+from ts341_project.pipeline.image_block import ProcessingBlock
+from ts341_project.pipeline.video_block.StatefulProcessingBlock import StatefulProcessingBlock
+from ts341_project.ProcessingResult import ProcessingResult
 
 
 class MotionDetectionBlock(StatefulProcessingBlock):
