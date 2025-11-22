@@ -30,6 +30,9 @@ matplotlib = "^3.8"        # Graphiques, courbes, visualisation de trajectoires 
 # Suivi et décision
 filterpy = "^1.4"      # Filtres de Kalman et suivi de trajectoire (fork maintenu de FilterPy)
 
+# Interface web
+streamlit = "^1.33.0"
+
 # Logs
 loguru = "^0.7"            # Logs lisibles et structurés pour le suivi des traitements
 

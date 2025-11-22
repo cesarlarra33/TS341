@@ -1,0 +1,5 @@
+exclude ts341_project/output/*
+exclude ts341_project/*.pt
+exclude ts341_project/*.onnx
+exclude ts341_project/data/*
+exclude ts341_project/droneenv/*
