@@ -97,7 +97,7 @@ Exemples:
         "--codec",
         "-c",
         default="mp4v",
-        help="Codec vidéo pour sauvegarde (défaut: mp4v)",
+        help="Codec vidéo pour sauvegarde (défaut: avc1 — H.264 compatible navigateurs)",
     )
 
     parser.add_argument(
@@ -140,7 +140,11 @@ def main():
     enable_display = not args.no_display
     enable_display_raw = args.display_raw
     enable_storage = args.save is not None
-    output_path = args.save or "output.mp4"
+    
+    if args.save:
+        output_path = str(Path(args.save).with_suffix(".mp4"))
+    else:
+        output_path = "output.mp4"
 
     # Afficher la configuration
     print("=" * 60)
@@ -148,14 +152,14 @@ def main():
     print("=" * 60)
     print(f"Source:     {source_type} ({source})")
     print(f"Pipeline:   {args.pipeline}")
-    print(f"Display Processed: {'✓' if enable_display else '✗'}")
+    print(f"Display Processed: {'ok' if enable_display else 'no'}")
     if enable_display_raw:
         print(f"Display Raw:       ✓ (Original avant traitement)")
-    print(f"Storage:    {'✓' if enable_storage else '✗'}")
+    print(f"Storage:    {'ok' if enable_storage else 'no'}")
     if enable_storage:
         print(f"  Fichier:  {output_path}")
         print(f"  Codec:    {args.codec}")
-    print(f"Realtime:   {'✓' if args.realtime else '✗'}")
+    print(f"Realtime:   {'ok' if args.realtime else 'no'}")
     if enable_display or enable_display_raw:
         if enable_display:
             print(f"Window Processed: {args.window}")

@@ -4,6 +4,9 @@ FROM python:3.11-slim
 WORKDIR /app
 # Installer les dépendances système nécessaires à OpenCV et Streamlit
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    libsm6 \
+    libxrender1 \
     libgl1 \
     libglib2.0-0 \
  && rm -rf /var/lib/apt/lists/*

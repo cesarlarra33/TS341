@@ -1,8 +1,4 @@
-from ts341_project.pipeline.custom_mon_pipeline5 import CustomMon_pipeline5Pipeline
-from ts341_project.pipeline.custom_mon_pipeline import CustomMon_pipelinePipeline
-from ts341_project.pipeline.custom_mon_pipelinetest_st import CustomMon_pipelinetest_stPipeline
-from ts341_project.pipeline.custom_mon_pipeline_yeyo import CustomMon_pipeline_yeyoPipeline
-from ts341_project.pipeline.custom_mon_pipeline_testv1 import CustomMon_pipeline_testv1Pipeline
+
 """
 Pipelines.py - Définition des pipelines de traitement pré-configurés
 
@@ -152,11 +148,6 @@ class MorphologyPipeline(ProcessingPipeline):
 # ============================================================================
 
 AVAILABLE_PIPELINES = {
-    "mon_pipeline5": CustomMon_pipeline5Pipeline,
-    "mon_pipeline": CustomMon_pipelinePipeline,
-    "mon_pipelinetest_st": CustomMon_pipelinetest_stPipeline,
-    "mon_pipeline_yeyo": CustomMon_pipeline_yeyoPipeline,
-    "mon_pipeline_testv1": CustomMon_pipeline_testv1Pipeline,
     "passthrough": PassthroughPipeline,
     "grayscale": GrayscalePipeline,
     "edges": EdgeDetectionPipeline,

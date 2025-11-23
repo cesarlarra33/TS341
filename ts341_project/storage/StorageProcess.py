@@ -8,6 +8,9 @@ from multiprocessing import Process, Queue, Event
 import cv2
 import time
 from pathlib import Path
+import subprocess
+import shlex
+import sys
 
 
 class NewStorageProcess:
@@ -53,13 +56,27 @@ class NewStorageProcess:
         """Processus de sauvegarde"""
         print(f"[NewStorageProcess] Démarrage - Sortie: {output_path}")
 
-        # Créer le writer
-        fourcc = cv2.VideoWriter_fourcc(*codec)
-        writer = cv2.VideoWriter(output_path, fourcc, fps, (width, height), True)
+        # Préparer le writer. On essaie d'ouvrir directement le fichier demandé.
+        out_path = Path(output_path)
+        ext = out_path.suffix.lower()
 
+        fourcc = cv2.VideoWriter_fourcc(*codec)
+        writer = cv2.VideoWriter(str(out_path), fourcc, fps, (width, height), True)
+
+        # Si l'ouverture a échoué et que l'extension est .mp4, on bascule
+        # vers un fichier temporaire .avi en MJPG puis on transcode avec ffmpeg
+        use_transcode = False
+        temp_avi = None
         if not writer.isOpened():
-            print(f"[NewStorageProcess] ERREUR: Impossible d'ouvrir {output_path}")
-            return
+            print(f"[NewStorageProcess] Warning: VideoWriter unable to open {output_path} with codec '{codec}'")
+            # Fallback: write AVI with MJPG
+            temp_avi = out_path.with_suffix('.avi')
+            mjpg_fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+            writer = cv2.VideoWriter(str(temp_avi), mjpg_fourcc, fps, (width, height), True)
+            if not writer.isOpened():
+                print(f"[NewStorageProcess] ERREUR: Impossible d'ouvrir ni {output_path} ni {temp_avi}")
+                return
+            use_transcode = True
 
         frame_count = 0
         start_time = time.time()
@@ -101,6 +118,89 @@ class NewStorageProcess:
                 continue  # Queue vide
 
         writer.release()
+
+        # Déterminer la source à vérifier / transcoder
+        if use_transcode and temp_avi is not None:
+            src_path = temp_avi
+        else:
+            src_path = out_path
+
+        def probe_video_codec(path: Path) -> str:
+            """Retourne le codec vidéo du premier stream via ffprobe, ou chaîne vide si échec."""
+            try:
+                cmd = [
+                    "ffprobe",
+                    "-v",
+                    "error",
+                    "-select_streams",
+                    "v:0",
+                    "-show_entries",
+                    "stream=codec_name",
+                    "-of",
+                    "default=noprint_wrappers=1:nokey=1",
+                    str(path),
+                ]
+                res = subprocess.run(cmd, capture_output=True, text=True)
+                if res.returncode != 0:
+                    return ""
+                return res.stdout.strip()
+            except Exception:
+                return ""
+
+        written_codec = probe_video_codec(src_path)
+        print(f"[NewStorageProcess] Codec détecté: '{written_codec}' pour {src_path}")
+
+        # Si codec non-h264, essayer un transcodage pour produire un MP4 H.264 lisible
+        try:
+            needs_transcode = written_codec.lower() != "h264"
+        except Exception:
+            needs_transcode = True
+
+        if needs_transcode:
+            final_tmp = out_path.with_suffix(".tmp.mp4")
+            cmd = [
+                "ffmpeg",
+                "-y",
+                "-i",
+                str(src_path),
+                "-c:v",
+                "libx264",
+                "-preset",
+                "fast",
+                "-crf",
+                "23",
+                "-pix_fmt",
+                "yuv420p",
+                "-movflags",
+                "+faststart",
+                str(final_tmp),
+            ]
+            print(f"[NewStorageProcess] Transcodage vers H.264: {' '.join(shlex.quote(a) for a in cmd)}")
+            res = subprocess.run(cmd, capture_output=True, text=True)
+            if res.returncode != 0:
+                print(f"[NewStorageProcess] ERREUR ffmpeg (returncode={res.returncode}): {res.stderr}")
+                print(f"[NewStorageProcess] ffmpeg stdout: {res.stdout}")
+            else:
+                try:
+                    # Remplacer le fichier final par le transcodé
+                    final_tmp.replace(out_path)
+                    print(f"[NewStorageProcess] Transcodage terminé et remplacé: {out_path}")
+                    # Supprimer la source si c'était un .avi temporaire
+                    if src_path != out_path and src_path.exists():
+                        try:
+                            src_path.unlink()
+                        except Exception:
+                            pass
+                except Exception as e:
+                    print(f"[NewStorageProcess] Impossible de remplacer le fichier final: {e}")
+        else:
+            # Si on avait écrit dans un .avi temporaire et qu'il est déjà h264 (rare), déplacer
+            if src_path != out_path and src_path.exists():
+                try:
+                    src_path.replace(out_path)
+                    print(f"[NewStorageProcess] Déplacé {src_path} -> {out_path}")
+                except Exception as e:
+                    print(f"[NewStorageProcess] Impossible de déplacer {src_path} -> {out_path}: {e}")
 
         elapsed = time.time() - start_time
         fps_avg = frame_count / elapsed if elapsed > 0 else 0
