@@ -19,7 +19,7 @@ with col_param:
         "CannyEdgeBlock", "GrayscaleBlock", "ColorFilterBlock", "ColorScaleBlock", "ThresholdBlock", "HistogramEqualizationBlock", "GaussianBlurBlock", "ProcessingBlock", "MorphologyBlock"
     ]
     video_blocks = [
-        "BackgroundSubtractorBlock", "MotionDetectionBlock", "StatefulProcessingBlock"
+        "BackgroundSubtractorBlock", "MotionDetectionBlock", "StatefulProcessingBlock", "CustomDroneBlock"
     ]
     selected_image_blocks = st.multiselect("Blocs image_block", image_blocks)
     selected_video_blocks = st.multiselect("Blocs video_block", video_blocks)

@@ -10,6 +10,7 @@ import cv2
 import numpy as np
 
 from ts341_project.ProcessingResult import ProcessingResult
+from ts341_project.pipeline.video_block.CustomDroneBlock import CustomDroneBlock
 from ts341_project.pipeline.ProcessingPipeline import ProcessingPipeline
 from ts341_project.pipeline.image_block.GrayscaleBlock import GrayscaleBlock
 from ts341_project.pipeline.image_block.CannyEdgeBlock import CannyEdgeBlock
@@ -34,6 +35,16 @@ class PassthroughPipeline(ProcessingPipeline):
         super().__init__(blocks=[])
         self.name = "Passthrough"
 
+class DroneDetectionPipeline(ProcessingPipeline):
+    """Pipeline de détection de drone utilisant CustomDroneBlock"""
+
+    def __init__(self, pattern_dir: str = None):
+        super().__init__(
+            blocks=[
+                CustomDroneBlock(pattern_dir=pattern_dir),
+            ]
+        )
+        self.name = "Drone Detection"
 
 class GrayscalePipeline(ProcessingPipeline):
     """Pipeline de conversion en niveaux de gris avec affichage couleur"""
@@ -156,6 +167,7 @@ AVAILABLE_PIPELINES = {
     "histogram": HistogramEqualizationPipeline,
     "edge-enhance": EdgeEnhancementPipeline,
     "morphology": MorphologyPipeline,
+    "drone-detection": DroneDetectionPipeline,
 }
 
 
