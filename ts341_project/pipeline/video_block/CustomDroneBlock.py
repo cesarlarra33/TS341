@@ -8,6 +8,9 @@ from ts341_project.pipeline.video_block.StatefulProcessingBlock import (
 )
 
 
+
+
+
 class CustomDroneBlock(StatefulProcessingBlock):
     """
     Block de détection de drone utilisant MOG2 pour la détection de mouvement
@@ -19,11 +22,12 @@ class CustomDroneBlock(StatefulProcessingBlock):
     def __init__(
         self,
         pattern_dir: str = None,
-        min_matches: int = 10,
-        mog2_history: int = 500,
+        min_matches: int = 5,
+        mog2_history: int = 300,
         mog2_var_threshold: int = 20,
-        orb_n_features: int = 500,
-        min_contour_size: int = 5,
+        orb_n_features: int = 300,  # OPTI: moins de keypoints
+        min_contour_size: int = 5,  # OPTI: ignorer petits objets
+        resize_width: int = 1280,   # Frame traitée forcée à largeur 1280
     ):
         """
         Args:
@@ -41,16 +45,17 @@ class CustomDroneBlock(StatefulProcessingBlock):
         # Paramètres
         self.min_matches = min_matches
         self.min_contour_size = min_contour_size
+        self.resize_width = resize_width
 
         # Initialisation MOG2
         self.back_sub = cv2.createBackgroundSubtractorMOG2(
             history=mog2_history, varThreshold=mog2_var_threshold, detectShadows=False
         )
 
-        # Kernel pour opérations morphologiques
-        self.kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+        # Kernel pour opérations morphologiques (plus petit = plus rapide)
+        self.kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
 
-        # Initialisation ORB
+        # Initialisation ORB (moins de keypoints)
         self.orb = cv2.ORB_create(nfeatures=orb_n_features)
         self.bf = cv2.BFMatcher(cv2.NORM_HAMMING)
 
@@ -60,7 +65,7 @@ class CustomDroneBlock(StatefulProcessingBlock):
             self._load_patterns(pattern_dir)
 
     def _load_patterns(self, pattern_dir: str):
-        """Charge les patterns de drone pour le matching ORB"""
+        """Charge les patterns de drone pour le matching ORB (lecture en gray, resize 128x128)"""
         pattern_path = Path(pattern_dir)
         if not pattern_path.exists():
             print(f"Dossier patterns introuvable: {pattern_dir}")
@@ -73,11 +78,8 @@ class CustomDroneBlock(StatefulProcessingBlock):
             img = cv2.imread(str(file_path), cv2.IMREAD_GRAYSCALE)
             if img is None:
                 continue
-
-            # Redimensionner pour optimisation
             img_small = cv2.resize(img, (128, 128))
             kp, des = self.orb.detectAndCompute(img_small, None)
-
             if des is not None:
                 self.patterns.append((kp, des))
                 print(f"Pattern chargé: {file_path.name} ({len(kp)} keypoints)")
@@ -95,9 +97,15 @@ class CustomDroneBlock(StatefulProcessingBlock):
         Returns:
             ProcessingResult avec les détections dessinées
         """
+        # Forcer la frame traitée à 1280x720
+        if self.resize_width is not None:
+            target_w = self.resize_width
+            target_h = 720
+            if (frame.shape[1], frame.shape[0]) != (target_w, target_h):
+                frame = cv2.resize(frame, (target_w, target_h))
+
         # S'assurer qu'on a une image BGR pour MOG2
         if len(frame.shape) == 2:
-            # Frame en grayscale, convertir en BGR
             frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
 
         # Convertir en niveaux de gris pour ORB
@@ -127,9 +135,10 @@ class CustomDroneBlock(StatefulProcessingBlock):
             if w < self.min_contour_size or h < self.min_contour_size:
                 continue
 
-            # Extraire la ROI
-            roi = gray[y : y + h, x : x + w]
-            roi_small = cv2.resize(roi, (128, 128))  # Optimisation
+            # Extraire la ROI, convertir en gray puis resize 128x128
+            roi = frame[y : y + h, x : x + w]
+            roi_gray = cv2.cvtColor(roi, cv2.COLOR_BGR2GRAY) if len(roi.shape) == 3 else roi
+            roi_small = cv2.resize(roi_gray, (128, 128))
 
             match_found = False
             num_matches = 0
