@@ -191,5 +191,73 @@ class CustomDroneBlock(StatefulProcessingBlock):
         result.metadata["num_confirmed_drones"] = sum(
             1 for d in detections if d["is_drone"]
         )
+        
+        # -------------------------------
+        # LOGIQUE D’AFFICHAGE DES COORDONNÉES
+        # -------------------------------
+
+        num_boxes = len(detections)
+
+        # Reset des données
+        result.metadata["drone_center"] = None
+        result.metadata["confidence"] = None
+        result.metadata["coord_display"] = ""
+
+        # Cas 1 : Trop de détections → rien
+        if num_boxes > 5:
+            result.metadata["coord_display"] = "Trop de détections : 0% fiable"
+
+        # Cas 2 : Une seule box → 90% fiable
+        elif num_boxes == 1:
+            det = detections[0]
+            x, y, w, h = det["bbox"]
+            cx = x + w // 2
+            cy = y + h // 2
+
+            result.metadata["drone_center"] = (cx, cy)
+            result.metadata["confidence"] = 90
+            result.metadata["coord_display"] = f"Centre: ({cx}, {cy}) — 90% fiable"
+
+            # Dessin
+            cv2.circle(frame, (cx, cy), 5, (255, 255, 0), -1)
+            cv2.putText(frame, "90% fiable", (cx + 10, cy),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
+
+        # Cas 3 : 2, 3, 4 ou 5 boxes → centre de la plus grande box + fiabilité = 1/nb
+        elif 2 <= num_boxes <= 5:
+
+            # Trouver la plus grande box (aire = w*h)
+            biggest = max(detections, key=lambda d: d["bbox"][2] * d["bbox"][3])
+
+            x, y, w, h = biggest["bbox"]
+            cx = x + w // 2
+            cy = y + h // 2
+
+            confidence = round((1 / num_boxes) * 100, 1)
+
+            result.metadata["drone_center"] = (cx, cy)
+            result.metadata["confidence"] = confidence
+            result.metadata["coord_display"] = f"Centre: ({cx}, {cy}) — {confidence}% fiable"
+
+            # Dessin
+            cv2.circle(frame, (cx, cy), 5, (255, 255, 0), -1)
+            cv2.putText(frame, f"{confidence}% fiable", (cx + 10, cy),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
+
+        # --- Affichage des coordonnées en bas à gauche ---
+        if result.metadata["drone_center"] is not None:
+            cx, cy = result.metadata["drone_center"]
+            text = f"Coordonnées : X={cx}, Y={cy}"
+
+            h = frame.shape[0]
+            cv2.putText(
+                frame,
+                text,
+                (10, h - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7,
+                (255, 255, 255),
+                2
+            )
 
         return result
