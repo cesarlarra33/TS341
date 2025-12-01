@@ -22,7 +22,7 @@ class CustomDroneBlock(StatefulProcessingBlock):
     def __init__(
         self,
         pattern_dir: str = None,
-        min_matches: int = 5,
+        min_matches: int = 2,
         mog2_history: int = 300,
         mog2_var_threshold: int = 20,
         orb_n_features: int = 300,  # OPTI: moins de keypoints

@@ -5,6 +5,7 @@ import subprocess
 import shutil
 from pathlib import Path
 import re
+from ts341_project.pipeline.Pipelines import list_pipelines
 
 st.set_page_config(page_title="TS341 - Traitement vidéo multiprocessus", layout="wide")
 st.title("TS341 - Traitement vidéo multiprocessus")
@@ -27,10 +28,10 @@ with col_param:
         "Ordre d'application (ex: CannyEdgeBlock,MotionDetectionBlock,GrayscaleBlock)",
         value=','.join(selected_image_blocks + selected_video_blocks)
     )
-    custom_pipeline_name = st.text_input("Nom du pipeline custom (lettres, chiffres, _)", value="mon_pipeline")
-    pipelines_py_path = os.path.join("ts341_project", "pipeline", "Pipelines.py")
-    create_pipeline = st.button("Créer le pipeline custom", key="create_pipeline_btn")
-    pipeline_to_run = st.text_input("Nom du pipeline à utiliser (doit exister dans Pipelines.py)", value=custom_pipeline_name)
+    # Sélectionner un pipeline parmi ceux définis dans Pipelines.py
+    available = list_pipelines()
+    pipeline_names = [name for name, desc in available]
+    pipeline_to_run = st.selectbox("Pipeline à utiliser (défini dans Pipelines.py)", pipeline_names)
     run_pipeline = st.button("Lancer le traitement vidéo", key="run_video_btn")
 
 with col_main:
@@ -51,40 +52,8 @@ with col_main:
         st.subheader("2. Résultat du traitement")
         if 'processing' not in st.session_state:
             st.session_state['processing'] = False
-        # Création pipeline custom si demandé
-        if uploaded_file and create_pipeline:
-            safe_name = re.sub(r'\W|^(?=\d)', '_', custom_pipeline_name)
-            class_name = f"Custom{safe_name.capitalize()}Pipeline"
-            block_names = [b.strip() for b in block_order.split(",") if b.strip()]
-            block_imports = []
-            block_inits = []
-            for b in block_names:
-                if b in image_blocks:
-                    block_imports.append(f"from ts341_project.pipeline.image_block.{b} import {b}")
-                    block_inits.append(f"            {b}(),")
-                elif b in video_blocks:
-                    block_imports.append(f"from ts341_project.pipeline.video_block.{b} import {b}")
-                    block_inits.append(f"            {b}(),")
-            block_imports = list(dict.fromkeys(block_imports))
-            pipeline_code = f'''import sys\nfrom ts341_project.pipeline.ProcessingPipeline import ProcessingPipeline\n{chr(10).join(block_imports)}\n\nclass {class_name}(ProcessingPipeline):\n    def __init__(self):\n        super().__init__(blocks=[\n{chr(10).join(block_inits)}\n        ])\n        self.name = "{safe_name}"\n'''
-            pipeline_file_path = os.path.join("ts341_project", "pipeline", f"custom_{safe_name}.py")
-            with open(pipeline_file_path, "w") as f:
-                f.write(pipeline_code)
-            st.success(f"Pipeline custom créé : {pipeline_file_path}")
-            # Ajout à Pipelines.py
-            with open(pipelines_py_path, "r") as f:
-                pipelines_py = f.read()
-            import_line = f"from ts341_project.pipeline.custom_{safe_name} import {class_name}"
-            if import_line not in pipelines_py:
-                pipelines_py = import_line + "\n" + pipelines_py
-            if f'"{safe_name}": {class_name}' not in pipelines_py:
-                pipelines_py = pipelines_py.replace(
-                    "AVAILABLE_PIPELINES = {",
-                    f'AVAILABLE_PIPELINES = {{\n    "{safe_name}": {class_name},'
-                )
-            with open(pipelines_py_path, "w") as f:
-                f.write(pipelines_py)
-            st.info(f"Ajouté à Pipelines.py sous le nom : {safe_name}")
+        # NOTE: la création de pipelines custom a été désactivée.
+        # Seuls les pipelines définis dans `Pipelines.py` peuvent être sélectionnés via la selectbox.
         # Lancer le pipeline si demandé
         if uploaded_file and run_pipeline:
             st.session_state['processing'] = True
