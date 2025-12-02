@@ -9,24 +9,20 @@ Quand l’application est lancée, elle ouvre automatiquement une interface web 
 - consulter les performances obtenues (vitesse, précision, etc.).
 
 
-
 ## II. Méthodologie
 
 ### II.1 Architecture multi-cœur
 
-Pour la structure du projet, nous avons opté pour une architecture **modulaire et multiprocessus**. Chaque étape du traitement (lecture, transformation, affichage et sauvegarde des images) s’exécute dans un processus indépendant. Ces processus communiquent via des *queues*, ce qui maximise le parallélisme et garantit une bonne réactivité, même sur des vidéos longues ou exigeantes.  
+Pour la structure du projet, nous avons opté pour une architecture **modulaire et multiprocessus**. Nous avons choisi cette organisation pour anticiper des usages en **quasi temps réel** et pour faciliter la maintenance des différents modules. Chaque étape du traitement (lecture, transformation, affichage et sauvegarde des images) s’exécute dans un processus indépendant. Ces processus communiquent via des *queues*, ce qui maximise le parallélisme et garantit une bonne réactivité, même sur des vidéos longues que nous avions dans le dataset.
 - **VideoReader** lit les frames et les transmet dans une queue.  
 - **PipelineProcessor** récupère chaque frame, applique le pipeline choisi et envoie le résultat.  
 - **DisplayProcess** affiche en temps réel les frames annotées (désactivé en mode Docker).  
 - **StorageProcess** enregistre la vidéo traitée et les éventuels fichiers de logs.
-
-Cette organisation permet d’anticiper des usages en **quasi temps réel** et facilite la maintenance des différents modules.
-
 ---
 
 ### II.2 Pipeline modulaire
 
-Le projet repose également sur une architecture en pipeline, composée d’une succession de blocs spécialisés.  
+Le projet repose également sur une architecture en pipeline, composée d’une succession de blocs spécialisés. Nous avons choisi de procéder de cette manière car la détection repose sur une succession de traitements qui peuvent être modulés de différentes façons lors des tests.
 Deux types de blocs sont mis en place :
 
 - **Image blocks** : opérations ne dépendant que de l’image actuelle 
@@ -56,3 +52,5 @@ L’algorithme implémenté dans Docker repose sur les méthodes classiques de t
 6. *Annotations* : dessin du rectangle autour du drone, affichage des coordonnées dans l’image, et métadonnées pour afficher la performance et faire le feedback à l'utilisateur. 
 
 ### II.5 Tests d'implémentation de YOLO
+Avec les méthodes classiques de traitement d’image, nous avons vite atteint des limites, surtout dans les vidéos avec des arbres ou des arrière-plans complexes. Le système devait choisir entre rater le drone (faux négatifs) ou détecter trop de bruit (faux positifs). Pour améliorer cette situation, nous avons essayé une approche basée sur l’IA en entraînant un modèle YOLO.
+
