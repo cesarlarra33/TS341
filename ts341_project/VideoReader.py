@@ -123,18 +123,24 @@ class VideoReader:
                 "timestamp": time.time(),
             }
 
-            # Envoi non-bloquant vers queue de traitement
-            try:
-                output_queue.put_nowait(data)
-            except:
-                pass  # Queue pleine, on skip la frame
+            # Envoi vers queue de traitement (bloquant avec retries pour gérer la backpressure)
+            def _try_put(q, item, retries=3, timeout=0.5):
+                for _ in range(retries):
+                    try:
+                        q.put(item, timeout=timeout)
+                        return True
+                    except:
+                        if stop_event.is_set():
+                            return False
+                        continue
+                return False
 
-            # Envoi non-bloquant vers queue raw display (si activée)
+            _try_put(output_queue, data)
+
+            # Envoi vers queue raw display (si activée)
             if has_raw_display:
-                try:
-                    raw_display_queue.put_nowait(data.copy())
-                except:
-                    pass  # Queue pleine, on skip la frame
+                # envoyer une copie pour éviter partage d'objet entre processus
+                _try_put(raw_display_queue, data.copy())
 
         cap.release()
         logger.info(f"Arrêté - {frame_count} frames lues")

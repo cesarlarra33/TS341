@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 
 from ts341_project.ProcessingResult import ProcessingResult
+from ts341_project.pipeline.video_block.CustomDroneBlock import CustomDroneBlock
 from ts341_project.pipeline.ProcessingPipeline import ProcessingPipeline
 from ts341_project.pipeline.image_block import *
 from ts341_project.pipeline.video_block import *
@@ -26,6 +27,18 @@ class PassthroughPipeline(ProcessingPipeline):
     def __init__(self):
         super().__init__(blocks=[])
         self.name = "Passthrough"
+
+
+class DroneDetectionPipeline(ProcessingPipeline):
+    """Pipeline de détection de drone utilisant CustomDroneBlock"""
+
+    def __init__(self, pattern_dir: str = None):
+        super().__init__(
+            blocks=[
+                CustomDroneBlock(pattern_dir=pattern_dir),
+            ]
+        )
+        self.name = "Drone Detection"
 
 
 class GrayscalePipeline(ProcessingPipeline):
@@ -224,6 +237,7 @@ AVAILABLE_PIPELINES = {
     "morphology": MorphologyPipeline,
     # "custom": CustomPipeline,
     "drone": DronePipeline,
+    "drone-detection": DroneDetectionPipeline,
 }
 
 
