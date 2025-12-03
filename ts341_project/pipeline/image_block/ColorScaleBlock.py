@@ -1,22 +1,23 @@
+"""Convertit une image grayscale en BGR (fausse couleur pour affichage)."""
+
 import cv2
 import numpy as np
 
-from ts341_project.ProcessingResult import ProcessingResult
 from ts341_project.pipeline.image_block.ProcessingBlock import ProcessingBlock
+from ts341_project.ProcessingResult import ProcessingResult
 
 
 class ColorScaleBlock(ProcessingBlock):
-    """Convertit une image grayscale en BGR (fausse couleur pour affichage)"""
+    """Convertit une image grayscale en BGR (fausse couleur pour affichage)."""
 
     def __init__(self):
         """Initialise le bloc de conversion colorscale."""
         self.name = "ColorScale"
 
     def process(
-        self, frame: np.ndarray, result: ProcessingResult = None
+        self, frame: np.ndarray, result: ProcessingResult | None = None
     ) -> ProcessingResult:
-        """
-        Convertit l'image de 1 canal vers 3 canaux BGR si nécessaire.
+        """Convertit l'image de 1 canal vers 3 canaux BGR si nécessaire.
 
         Args:
             frame: Image à convertir (np.ndarray)
@@ -33,10 +34,12 @@ class ColorScaleBlock(ProcessingBlock):
             result.frame = frame
             return result
 
-        # Si l'image est en niveaux de gris (1 ou 2 dimensions), on convertit en BGR
-        if len(frame.shape) == 2 or (len(frame.shape) == 3 and frame.shape[2] == 1):
+        # Si l'image est en niveaux de gris (1 ou 2 dimensions),
+        # on convertit en BGR
+        if len(frame.shape) == 2 or (
+            len(frame.shape) == 3 and frame.shape[2] == 1
+        ):
             result.frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
-
         return result
 
     def __repr__(self):

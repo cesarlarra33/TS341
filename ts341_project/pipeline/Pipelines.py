@@ -1,27 +1,26 @@
-
 """
-Pipelines.py - Définition des pipelines de traitement pré-configurés
+Module Pipelines.
 
-Utilise les blocks existants dans image_block/ et video_block/
+Définition des pipelines de traitement pré-configurés.
+Utilise les blocks existants dans image_block/ et video_block/.
 Toutes les pipelines héritent de ProcessingPipeline.
 """
 
-import cv2
-import numpy as np
-
-from ts341_project.ProcessingResult import ProcessingResult
-from ts341_project.pipeline.video_block.CustomDroneBlock import CustomDroneBlock
-from ts341_project.pipeline.ProcessingPipeline import ProcessingPipeline
-from ts341_project.pipeline.image_block.GrayscaleBlock import GrayscaleBlock
 from ts341_project.pipeline.image_block.CannyEdgeBlock import CannyEdgeBlock
-from ts341_project.pipeline.image_block.GaussianBlurBlock import GaussianBlurBlock
-from ts341_project.pipeline.image_block.ThresholdBlock import ThresholdBlock
-from ts341_project.pipeline.image_block.MorphologyBlock import MorphologyBlock
+from ts341_project.pipeline.image_block.ColorScaleBlock import ColorScaleBlock
+from ts341_project.pipeline.image_block.GaussianBlurBlock import (
+    GaussianBlurBlock,
+)
+from ts341_project.pipeline.image_block.GrayscaleBlock import GrayscaleBlock
 from ts341_project.pipeline.image_block.HistogramEqualizationBlock import (
     HistogramEqualizationBlock,
 )
-from ts341_project.pipeline.image_block.ColorScaleBlock import ColorScaleBlock
-
+from ts341_project.pipeline.image_block.MorphologyBlock import MorphologyBlock
+from ts341_project.pipeline.image_block.ThresholdBlock import ThresholdBlock
+from ts341_project.pipeline.ProcessingPipeline import ProcessingPipeline
+from ts341_project.pipeline.video_block.CustomDroneBlock import (
+    CustomDroneBlock,
+)
 
 # ============================================================================
 # PIPELINES SIMPLES
@@ -29,16 +28,19 @@ from ts341_project.pipeline.image_block.ColorScaleBlock import ColorScaleBlock
 
 
 class PassthroughPipeline(ProcessingPipeline):
-    """Pipeline passthrough - aucun traitement"""
+    """Pipeline passthrough - aucun traitement."""
 
     def __init__(self):
+        """Initialise le pipeline passthrough."""
         super().__init__(blocks=[])
         self.name = "Passthrough"
 
-class DroneDetectionPipeline(ProcessingPipeline):
-    """Pipeline de détection de drone utilisant CustomDroneBlock"""
 
-    def __init__(self, pattern_dir: str = None):
+class DroneDetectionPipeline(ProcessingPipeline):
+    """Pipeline de détection de drone utilisant CustomDroneBlock."""
+
+    def __init__(self, pattern_dir: str | None = None):
+        """Initialise le pipeline de détection de drone."""
         super().__init__(
             blocks=[
                 CustomDroneBlock(pattern_dir=pattern_dir),
@@ -46,10 +48,12 @@ class DroneDetectionPipeline(ProcessingPipeline):
         )
         self.name = "Drone Detection"
 
+
 class GrayscalePipeline(ProcessingPipeline):
-    """Pipeline de conversion en niveaux de gris avec affichage couleur"""
+    """Pipeline de conversion en niveaux de gris avec affichage couleur."""
 
     def __init__(self):
+        """Initialise le pipeline de conversion en niveaux de gris."""
         super().__init__(
             blocks=[
                 GrayscaleBlock(),
@@ -60,9 +64,10 @@ class GrayscalePipeline(ProcessingPipeline):
 
 
 class EdgeDetectionPipeline(ProcessingPipeline):
-    """Pipeline de détection de contours (Canny)"""
+    """Pipeline de détection de contours (Canny)."""
 
     def __init__(self, threshold1=50, threshold2=150):
+        """Initialise le pipeline de détection de contours (Canny)."""
         super().__init__(
             blocks=[
                 CannyEdgeBlock(threshold1, threshold2),
@@ -73,12 +78,15 @@ class EdgeDetectionPipeline(ProcessingPipeline):
 
 
 class BlurPipeline(ProcessingPipeline):
-    """Pipeline de flou gaussien"""
+    """Pipeline de flou gaussien."""
 
     def __init__(self, kernel_size=15, sigma=0):
+        """Initialise le pipeline de flou gaussien."""
         # GaussianBlurBlock attend un tuple (kernel_size, kernel_size)
         kernel = (
-            (kernel_size, kernel_size) if isinstance(kernel_size, int) else kernel_size
+            (kernel_size, kernel_size)
+            if isinstance(kernel_size, int)
+            else kernel_size
         )
         super().__init__(
             blocks=[
@@ -89,9 +97,10 @@ class BlurPipeline(ProcessingPipeline):
 
 
 class ThresholdPipeline(ProcessingPipeline):
-    """Pipeline de seuillage"""
+    """Pipeline de seuillage."""
 
     def __init__(self, threshold=127, threshold_type="binary"):
+        """Initialise le pipeline de seuillage."""
         super().__init__(
             blocks=[
                 GrayscaleBlock(),
@@ -103,9 +112,10 @@ class ThresholdPipeline(ProcessingPipeline):
 
 
 class HistogramEqualizationPipeline(ProcessingPipeline):
-    """Pipeline d'égalisation d'histogramme"""
+    """Pipeline d'égalisation d'histogramme."""
 
     def __init__(self):
+        """Initialise le pipeline d'égalisation d'histogramme."""
         super().__init__(
             blocks=[
                 GrayscaleBlock(),
@@ -122,12 +132,15 @@ class HistogramEqualizationPipeline(ProcessingPipeline):
 
 
 class EdgeEnhancementPipeline(ProcessingPipeline):
-    """Pipeline avancé: Flou + Détection de contours"""
+    """Pipeline avancé: Flou + Détection de contours."""
 
     def __init__(self, blur_kernel=5, canny_low=50, canny_high=150):
+        """Initialise le pipeline avancé de flou + détection de contours."""
         # GaussianBlurBlock attend un tuple
         kernel = (
-            (blur_kernel, blur_kernel) if isinstance(blur_kernel, int) else blur_kernel
+            (blur_kernel, blur_kernel)
+            if isinstance(blur_kernel, int)
+            else blur_kernel
         )
         super().__init__(
             blocks=[
@@ -140,9 +153,10 @@ class EdgeEnhancementPipeline(ProcessingPipeline):
 
 
 class MorphologyPipeline(ProcessingPipeline):
-    """Pipeline de morphologie mathématique"""
+    """Pipeline de morphologie mathématique."""
 
     def __init__(self, operation="opening", kernel_size=5):
+        """Initialise le pipeline de morphologie mathématique."""
         super().__init__(
             blocks=[
                 GrayscaleBlock(),
@@ -173,21 +187,25 @@ AVAILABLE_PIPELINES = {
 
 def create_pipeline(pipeline_name, **kwargs):
     """
-    Crée un pipeline selon le nom ou retourne la pipeline si c'est déjà une instance.
+    Crée un pipeline selon le nom ou retourne la pipeline.
+
+    si c'est déjà une instance.
 
     Args:
-        pipeline_name: Nom du pipeline (str), instance de ProcessingPipeline,
-                      ou classe de pipeline
-        **kwargs: Arguments spécifiques au pipeline
+        pipeline_name: Nom du pipeline (str), instance de
+        ProcessingPipeline, ou classe de pipeline.
+        **kwargs: Arguments spécifiques au pipeline.
 
     Returns:
-        Instance du pipeline
+        Instance du pipeline.
 
     Exemples:
         >>> create_pipeline("grayscale")
-        >>> create_pipeline("edges", threshold1=100, threshold2=200)
+        >>> create_pipeline("edges", threshold1=100,
+        >>> threshold2=200)
         >>> create_pipeline(EdgeDetectionPipeline(100, 200))
-        >>> create_pipeline(EdgeDetectionPipeline, threshold1=100, threshold2=200)
+        >>> create_pipeline(EdgeDetectionPipeline, threshold1=100,
+        >>> threshold2=200)
     """
     # Si c'est déjà une instance de ProcessingPipeline, la retourner
     if isinstance(pipeline_name, ProcessingPipeline):
@@ -213,13 +231,14 @@ def create_pipeline(pipeline_name, **kwargs):
 
     # Sinon erreur
     raise TypeError(
-        f"pipeline_name doit être un str, une classe ou une instance de ProcessingPipeline, "
+        f"pipeline_name doit être un str, une classe"
+        "ou une instance de ProcessingPipeline, "
         f"pas {type(pipeline_name)}"
     )
 
 
 def list_pipelines():
-    """Retourne la liste des pipelines disponibles avec leurs descriptions"""
+    """Retourne la liste des pipelines disponibles avec leurs descriptions."""
     pipelines_info = []
     for name, pipeline_class in AVAILABLE_PIPELINES.items():
         # Créer une instance temporaire pour obtenir le nom

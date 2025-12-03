@@ -1,3 +1,5 @@
+"""Bloc de conversion en niveaux de gris."""
+
 import cv2
 import numpy as np
 
@@ -6,11 +8,12 @@ from ts341_project.ProcessingResult import ProcessingResult
 
 
 class GrayscaleBlock(ProcessingBlock):
-    """Convertit l'image en niveaux de gris"""
+    """Convertit l'image en niveaux de gris."""
 
     def process(
-        self, frame: np.ndarray, result: ProcessingResult = None
+        self, frame: np.ndarray, result: ProcessingResult | None = None
     ) -> ProcessingResult:
+        """Convertit l'image de couleur en niveaux de gris."""
         if result is None:
             result = ProcessingResult(frame=frame)
 

@@ -1,3 +1,5 @@
+"""Égalisation d'histogramme pour améliorer le contraste."""
+
 import cv2
 import numpy as np
 
@@ -6,11 +8,12 @@ from ts341_project.ProcessingResult import ProcessingResult
 
 
 class HistogramEqualizationBlock(ProcessingBlock):
-    """Égalisation d'histogramme pour améliorer le contraste"""
+    """Égalisation d'histogramme pour améliorer le contraste."""
 
     def process(
-        self, frame: np.ndarray, result: ProcessingResult = None
+        self, frame: np.ndarray, result: ProcessingResult | None = None
     ) -> ProcessingResult:
+        """Applique l'égalisation d'histogramme à l'image."""
         if result is None:
             result = ProcessingResult(frame=frame)
 

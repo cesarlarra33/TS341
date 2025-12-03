@@ -1,18 +1,21 @@
 """
-VideoReader - Lecture vidéo dans un processus dédié
+VideoReader - Lecture vidéo dans un processus dédié.
 
 Lit depuis webcam ou fichier vidéo et distribue les frames via Queue
 """
 
-import cv2
 import time
-from multiprocessing import Process, Queue, Event
+from multiprocessing import Process
+from multiprocessing.queues import Queue
+from multiprocessing.synchronize import Event
 from typing import Union
+
+import cv2
 
 
 class VideoReader:
-    """
-    Lecteur vidéo multiprocessus.
+    """Lecteur vidéo multiprocessus.
+
     Lit en continu et envoie les frames dans une queue.
     """
 
@@ -22,15 +25,18 @@ class VideoReader:
         output_queue: Queue,
         stop_event: Event,
         realtime: bool = False,
-        raw_display_queue: Queue = None,
+        raw_display_queue: Queue | None = None,
     ):
         """
+        Videoreader - Lecture vidéo dans un processus dédié.
+
         Args:
             source: Chemin vidéo ou ID webcam (0, 1, ...)
             output_queue: Queue principale pour le traitement
             stop_event: Event pour arrêter la lecture
             realtime: Si True, respecte le FPS de la source
-            raw_display_queue: Queue optionnelle pour affichage raw (sans traitement)
+            raw_display_queue: Queue optionnelle pour affichage raw
+            (sans traitement)
         """
         self.source = source
         self.output_queue = output_queue
@@ -46,7 +52,7 @@ class VideoReader:
         self.total_frames = 0
 
     def _get_video_info(self, cap):
-        """Récupère les infos de la vidéo"""
+        """Récupère les infos de la vidéo."""
         self.fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
         self.width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         self.height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -54,9 +60,14 @@ class VideoReader:
 
     @staticmethod
     def _reader_process(
-        source, output_queue, stop_event, realtime, is_webcam, raw_display_queue
+        source,
+        output_queue,
+        stop_event,
+        realtime,
+        is_webcam,
+        raw_display_queue,
     ):
-        """Processus de lecture (fonction statique pour multiprocessing)"""
+        """Processus de lecture (fonction statique pour multiprocessing)."""
         print(f"[VideoReader] Démarrage lecture - Source: {source}")
 
         cap = cv2.VideoCapture(source)
@@ -73,7 +84,9 @@ class VideoReader:
 
         has_raw_display = raw_display_queue is not None
         print(
-            f"[VideoReader] FPS: {fps:.1f}, Realtime: {realtime}, Raw Display: {has_raw_display}"
+            f"[VideoReader] FPS: {fps:.1f},"
+            f"Realtime: {realtime},"
+            f"Raw Display: {has_raw_display}"
         )
 
         frame_count = 0
@@ -105,13 +118,14 @@ class VideoReader:
                 "timestamp": time.time(),
             }
 
-            # Envoi vers queue de traitement (bloquant avec retries pour gérer la backpressure)
+            # Envoi vers queue de traitement (bloquant avec
+            # retries pour gérer la backpressure)
             def _try_put(q, item, retries=3, timeout=0.5):
                 for _ in range(retries):
                     try:
                         q.put(item, timeout=timeout)
                         return True
-                    except:
+                    except Exception:
                         if stop_event.is_set():
                             return False
                         continue
@@ -128,18 +142,20 @@ class VideoReader:
         print(f"[VideoReader] Arrêté - {frame_count} frames lues")
 
     def start(self):
-        """Démarre le processus de lecture"""
+        """Démarre le processus de lecture."""
         # D'abord récupérer les infos (dans le process parent)
         cap = cv2.VideoCapture(self.source)
         if cap.isOpened():
             self._get_video_info(cap)
             cap.release()
             print(
-                f"[VideoReader] Infos: {self.width}x{self.height} @ {self.fps:.1f} FPS"
+                f"[VideoReader] Infos: {self.width}x{self.height}"
+                f"@ {self.fps:.1f} FPS"
             )
         else:
             print(
-                f"[VideoReader] WARNING: Impossible de lire les infos de {self.source}"
+                f"[VideoReader] WARNING: Impossible"
+                f"de lire les infos de {self.source}"
             )
 
         # Lancer le processus de lecture
@@ -158,7 +174,7 @@ class VideoReader:
         return self
 
     def stop(self):
-        """Arrête le processus"""
+        """Arrête le processus."""
         self.stop_event.set()
         if hasattr(self, "process"):
             self.process.join(timeout=2.0)

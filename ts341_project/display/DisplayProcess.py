@@ -1,17 +1,17 @@
 """
-NewDisplayProcess - Affichage dans un processus dédié
+NewDisplayProcess - Affichage dans un processus dédié.
 
 Affiche les frames traitées en temps réel
 """
 
-from multiprocessing import Process, Queue, Event
+from multiprocessing import Process, Queue
+from multiprocessing.synchronize import Event
+
 import cv2
 
 
 class NewDisplayProcess:
-    """
-    Affichage multiprocessus avec OpenCV.
-    """
+    """Affichage multiprocessus avec OpenCV."""
 
     def __init__(
         self,
@@ -21,6 +21,8 @@ class NewDisplayProcess:
         max_height: int = 1080,
     ):
         """
+        Initialise le processus d'affichage.
+
         Args:
             display_queue: Queue d'entrée pour les frames
             stop_event: Event d'arrêt
@@ -34,7 +36,7 @@ class NewDisplayProcess:
 
     @staticmethod
     def _display_process(display_queue, stop_event, window_name, max_height):
-        """Processus d'affichage"""
+        """Processus d'affichage."""
         print(f"[NewDisplayProcess] Démarrage - Fenêtre: {window_name}")
 
         try:
@@ -75,16 +77,19 @@ class NewDisplayProcess:
                 frame_count += 1
 
                 if frame_count % 100 == 0:
-                    print(f"[NewDisplayProcess] {frame_count} frames affichées")
+                    print(
+                        f"[NewDisplayProcess] {frame_count}"
+                        f"frames affichées"
+                    )
 
-            except:
+            except Exception:
                 continue  # Queue vide
 
         cv2.destroyWindow(window_name)
         print(f"[NewDisplayProcess] Arrêté - {frame_count} frames affichées")
 
     def start(self):
-        """Démarre le processus"""
+        """Démarre le processus."""
         self.process = Process(
             target=NewDisplayProcess._display_process,
             args=(
@@ -98,7 +103,7 @@ class NewDisplayProcess:
         return self
 
     def stop(self):
-        """Arrête le processus"""
+        """Arrête le processus."""
         self.stop_event.set()
         if hasattr(self, "process"):
             self.process.join(timeout=2.0)

@@ -1,21 +1,19 @@
-"""
-Module pipeline pour le traitement de flux vidéo
-"""
+"""Module pipeline pour le traitement de flux vidéo."""
 
-from .ProcessingPipeline import ProcessingPipeline
 from .Pipelines import (
+    AVAILABLE_PIPELINES,
+    BlurPipeline,
+    EdgeDetectionPipeline,
+    EdgeEnhancementPipeline,
+    GrayscalePipeline,
+    HistogramEqualizationPipeline,
+    MorphologyPipeline,
+    PassthroughPipeline,
+    ThresholdPipeline,
     create_pipeline,
     list_pipelines,
-    AVAILABLE_PIPELINES,
-    PassthroughPipeline,
-    GrayscalePipeline,
-    EdgeDetectionPipeline,
-    BlurPipeline,
-    ThresholdPipeline,
-    HistogramEqualizationPipeline,
-    EdgeEnhancementPipeline,
-    MorphologyPipeline,
 )
+from .ProcessingPipeline import ProcessingPipeline
 
 __all__ = [
     "ProcessingPipeline",

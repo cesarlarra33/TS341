@@ -1,30 +1,44 @@
-import numpy as np
-from typing import List
-from abc import abstractmethod
+"""
+Module StatefulProcessingBlock.
 
-from ts341_project.pipeline.image_block import ProcessingBlock, GaussianBlurBlock, GrayscaleBlock
+Ce module définit la classe abstraite StatefulProcessingBlock pour
+les blocs de traitement vidéo
+avec mémoire, supportant le pré- et post-traitement.
+"""
+
+from abc import abstractmethod
+from typing import List
+
+import numpy as np
+
+from ts341_project.pipeline.image_block import ProcessingBlock
 from ts341_project.ProcessingResult import ProcessingResult
 
 
 class StatefulProcessingBlock(ProcessingBlock):
-    """
-    Classe abstraite pour les briques avec mémoire (traitement vidéo).
-    Supporte des pipelines de pré-traitement et post-traitement.
-    Si aucun preprocessing n'est fourni, utilise un pipeline par défaut.
+    """Classe abstraite pour les briques avec mémoire (traitement vidéo).
+
+    Supporte des pipelines de pré-traitement et post-traitement. Si
+    aucun preprocessing n'est fourni, utilise un pipeline par défaut.
     """
 
     def __init__(
         self,
-        preprocessing: List[ProcessingBlock] = None,
-        postprocessing: List[ProcessingBlock] = None,
+        preprocessing: List[ProcessingBlock] | None = None,
+        postprocessing: List[ProcessingBlock] | None = None,
         use_default_preprocessing: bool = True,
     ):
-        """
+        """Initialise le bloc de traitement vidéo avec mémoire.
+
         Args:
-            preprocessing: Liste de briques à appliquer AVANT la logique avec mémoire.
-                          Si None et use_default_preprocessing=True, utilise le preprocessing par défaut.
-            postprocessing: Liste de briques à appliquer APRÈS la logique avec mémoire
-            use_default_preprocessing: Si True et preprocessing=None, utilise le preprocessing par défaut
+            preprocessing: Liste de briques à appliquer AVANT la logique
+            avec mémoire.
+            Si None et use_default_preprocessing=True, utilise le
+            preprocessing par défaut.
+            postprocessing: Liste de briques à appliquer APRÈS
+            la logique avec mémoire.
+            use_default_preprocessing: Si True et preprocessing=None, utilise l
+            e preprocessing par défaut.
         """
         # Si preprocessing est explicitement fourni, on l'utilise
         if preprocessing is not None:
@@ -39,13 +53,19 @@ class StatefulProcessingBlock(ProcessingBlock):
         self.postprocessing = postprocessing or []
 
     def _get_default_preprocessing(self) -> list:
+        """Retourne le pré-traitement par défaut pour.
+
+        la détection de mouvement.
+
+        Par défaut : Flou gaussien léger + conversion en niveaux de gris.
+        Optimisé pour temps réel : noyau réduit à 5x5 au lieu de 21x21.
         """
-        Retourne le pré-traitement par défaut pour la détection de mouvement.
-        Par défaut: Flou gaussien LÉGER + conversion en niveaux de gris
-        OPTIMISÉ pour temps réel: noyau réduit à 5x5 au lieu de 21x21
-        """
-        from ts341_project.pipeline.image_block.GaussianBlurBlock import GaussianBlurBlock
-        from ts341_project.pipeline.image_block.GrayscaleBlock import GrayscaleBlock
+        from ts341_project.pipeline.image_block.GaussianBlurBlock import (
+            GaussianBlurBlock,
+        )
+        from ts341_project.pipeline.image_block.GrayscaleBlock import (
+            GrayscaleBlock,
+        )
 
         # OPTIMISATION: noyau 5x5 au lieu de 21x21 pour la webcam temps réel
         return [GaussianBlurBlock(kernel_size=(5, 5)), GrayscaleBlock()]
@@ -53,8 +73,8 @@ class StatefulProcessingBlock(ProcessingBlock):
     def _apply_pipeline(
         self, frame: np.ndarray, blocks: List[ProcessingBlock]
     ) -> np.ndarray:
-        """
-        Applique une liste de briques sur une frame.
+        """Applique une liste de briques sur une frame.
+
         Args:
             frame: Image d'entrée
             blocks: Liste de briques à appliquer
@@ -71,21 +91,27 @@ class StatefulProcessingBlock(ProcessingBlock):
     def process_with_memory(
         self, frame: np.ndarray, result: ProcessingResult
     ) -> ProcessingResult:
-        """
-        Logique principale avec mémoire (à implémenter par les sous-classes).
+        """Logique principale avec mémoire (à implémenter.
+
+        par les sous-classes).
+
         Args:
-            frame: Image APRÈS pré-traitement
-            result: Résultat à enrichir
+            frame: Image après pré-traitement.
+            result: Résultat à enrichir.
         Returns:
-            ProcessingResult mis à jour
+            ProcessingResult mis à jour.
         """
-        pass
 
     def process(
-        self, frame: np.ndarray, result: ProcessingResult = None
+        self, frame: np.ndarray, result: ProcessingResult | None = None
     ) -> ProcessingResult:
-        """
-        Traite une frame avec pré/post-traitement automatique.
+        """Traite une frame avec pré/post-traitement automatique.
+
+        Args:
+            frame: Image d'entrée.
+            result: Résultat existant ou None.
+        Returns:
+            ProcessingResult mis à jour.
         """
         if result is None:
             result = ProcessingResult(frame=frame.copy())
@@ -98,6 +124,8 @@ class StatefulProcessingBlock(ProcessingBlock):
 
         # 3. POST-TRAITEMENT (sur le résultat)
         if self.postprocessing:
-            result.frame = self._apply_pipeline(result.frame, self.postprocessing)
+            result.frame = self._apply_pipeline(
+                result.frame, self.postprocessing
+            )
 
         return result

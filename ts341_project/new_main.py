@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-new_main.py - Point d'entrée pour la nouvelle architecture multiprocessus
+new_main.py - Point d'entrée pour la nouvelle architecture multiprocessus.
 
 Usage:
     python new_main.py [source] [options]
@@ -22,16 +22,16 @@ Exemples:
     python new_main.py 0 --pipeline grayscale
 """
 
-import sys
 import argparse
+import sys
 from pathlib import Path
-from typing import Union, Type
+from typing import Type, Union
 
-# Imports depuis le package ts341_project
-from ts341_project.VideoProcessor import VideoProcessor
 from ts341_project.pipeline import AVAILABLE_PIPELINES
 from ts341_project.pipeline.ProcessingPipeline import ProcessingPipeline
 
+# Imports depuis le package ts341_project
+from ts341_project.VideoProcessor import VideoProcessor
 
 # ============================================================================
 # MAIN
@@ -39,18 +39,22 @@ from ts341_project.pipeline.ProcessingPipeline import ProcessingPipeline
 
 
 def parse_args():
-    """Parse les arguments en ligne de commande"""
+    """Parse les arguments en ligne de commande."""
     parser = argparse.ArgumentParser(
-        description="Nouvelle architecture multiprocessus pour traitement vidéo",
+        description=(
+            "Nouvelle architecture",
+            "multiprocessus pour traitement vidéo",
+        ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Exemples:
-  %(prog)s 0                                    # Webcam avec affichage
-  %(prog)s 0 --save output.mp4                  # Webcam avec affichage + sauvegarde
-  %(prog)s video.mp4                            # Fichier avec affichage
-  %(prog)s video.mp4 --save out.mp4 --no-display  # Headless (sauvegarde uniquement)
-  %(prog)s 0 --pipeline dual                    # Webcam avec affichage dual
-  %(prog)s 0 --pipeline edges                   # Webcam avec détection contours
+  %(prog)s 0                         # Webcam avec affichage
+  %(prog)s 0 --save output.mp4       # Webcam avec affichage + sauvegarde
+  %(prog)s video.mp4                 # Fichier avec affichage
+  %(prog)s video.mp4 --save out.mp4 --no-display
+  # Headless (sauvegarde uniquement)
+  %(prog)s 0 --pipeline dual         # Webcam avec affichage dual
+  %(prog)s 0 --pipeline edges        # Webcam avec détection contours
         """,
     )
 
@@ -97,7 +101,10 @@ Exemples:
         "--codec",
         "-c",
         default="mp4v",
-        help="Codec vidéo pour sauvegarde (défaut: avc1 — H.264 compatible navigateurs)",
+        help=(
+            "Codec vidéo pour sauvegarde (défaut",
+            ": avc1 — H.264 compatible navigateurs)",
+        ),
     )
 
     parser.add_argument(
@@ -118,8 +125,8 @@ Exemples:
     return parser.parse_args()
 
 
-def main():
-    """Point d'entrée principal"""
+def main() -> None:
+    """Point d'entrée principal."""
     args = parse_args()
 
     # Déterminer la source
@@ -133,14 +140,17 @@ def main():
             print(f"Fichier introuvable: {source}")
             sys.exit(1)
 
-    # Créer le pipeline (str sera converti en ProcessingPipeline par VideoProcessor)
-    pipeline: Union[str, ProcessingPipeline, Type[ProcessingPipeline]] = args.pipeline
+    # Créer le pipeline (str sera converti en
+    # ProcessingPipeline par VideoProcessor)
+    pipeline: Union[str, ProcessingPipeline, Type[ProcessingPipeline]] = (
+        args.pipeline
+    )
 
     # Configuration
     enable_display = not args.no_display
     enable_display_raw = args.display_raw
     enable_storage = args.save is not None
-    
+
     if args.save:
         output_path = str(Path(args.save).with_suffix(".mp4"))
     else:
@@ -150,11 +160,11 @@ def main():
     print("=" * 60)
     print("Nouvelle Architecture Multiprocessus")
     print("=" * 60)
-    print(f"Source:     {source_type} ({source})")
-    print(f"Pipeline:   {args.pipeline}")
+    print(f"Source:{source_type} ({source})")
+    print(f"Pipeline:{args.pipeline}")
     print(f"Display Processed: {'ok' if enable_display else 'no'}")
     if enable_display_raw:
-        print(f"Display Raw:       ✓ (Original avant traitement)")
+        print("Display Raw:       ✓ (Original avant traitement)")
     print(f"Storage:    {'ok' if enable_storage else 'no'}")
     if enable_storage:
         print(f"  Fichier:  {output_path}")
@@ -164,8 +174,8 @@ def main():
         if enable_display:
             print(f"Window Processed: {args.window}")
         if enable_display_raw:
-            print(f"Window Raw:       Raw (Live)")
-        print(f"Max Height:       {args.max_height}")
+            print("Window Raw: Raw (Live)")
+        print("Max Height: {args.max_height}")
     print("=" * 60)
     print()
 

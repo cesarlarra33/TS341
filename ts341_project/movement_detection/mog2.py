@@ -1,3 +1,8 @@
+"""Détection de mouvement avec MOG2 et sauvegarde des.
+
+masques de premier plan.
+"""
+
 import cv2
 import numpy as np
 
@@ -20,8 +25,10 @@ if fps is None or fps <= 0 or np.isnan(fps):
     fps = 20.0
 
 # Use a codec/container that is widely supported for debugging (MJPG + .avi)
-fourcc = cv2.VideoWriter_fourcc(*"MJPG")
-out_file = directory + "/foreground_masks_threshold" + str(varThreshold) + ".avi"
+fourcc = cv2.VideoWriter_fourcc(*"MJPG")  # type: ignore[attr-defined]
+out_file = (
+    directory + "/foreground_masks_threshold" + str(varThreshold) + ".avi"
+)
 # We will write 3-channel BGR frames to be compatible with most codecs/players
 out = cv2.VideoWriter(out_file, fourcc, fps, (width, height), True)
 if not out.isOpened():

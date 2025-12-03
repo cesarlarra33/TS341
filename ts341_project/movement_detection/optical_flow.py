@@ -1,3 +1,5 @@
+"""Calcul et visualisation du flux optique."""
+
 # en utilisant l'algo de Farneback pour le calcul du flux optique
 import cv2
 import numpy as np
@@ -17,7 +19,7 @@ fps = cap.get(cv2.CAP_PROP_FPS)
 if fps is None or fps <= 0 or np.isnan(fps):
     fps = 20.0
 # Use a codec/container that is widely supported for debugging (MJPG + .avi)
-fourcc = cv2.VideoWriter_fourcc(*"MJPG")
+fourcc = cv2.VideoWriter_fourcc(*"MJPG")  # type: ignore[attr-defined]
 out_file = directory + "/optical_flow.avi"
 # We will write 3-channel BGR frames to be compatible with most codecs/players
 out = cv2.VideoWriter(out_file, fourcc, fps, (width, height), True)
@@ -32,10 +34,24 @@ while True:
     if not ret:
         break
     next = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
-    flow = cv2.calcOpticalFlowFarneback(prvs, next, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+    flow = cv2.calcOpticalFlowFarneback(
+        prvs,
+        next,
+        None,
+        0.5,
+        3,
+        15,
+        3,
+        5,
+        1.2,
+        0,
+    )  # type: ignore[call-overload]
+
     mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1])
     hsv[..., 0] = ang * 180 / np.pi / 2
-    hsv[..., 2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)
+    hsv[..., 2] = cv2.normalize(
+        mag, None, 0, 255, cv2.NORM_MINMAX
+    )  # type: ignore[call-overload]
     bgr = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
     out.write(bgr)
     prvs = next

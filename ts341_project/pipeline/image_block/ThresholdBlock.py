@@ -1,3 +1,5 @@
+"""Bloc de seuillage d'image."""
+
 import cv2
 import numpy as np
 
@@ -6,16 +8,22 @@ from ts341_project.ProcessingResult import ProcessingResult
 
 
 class ThresholdBlock(ProcessingBlock):
-    """Seuillage d'image"""
+    """Seuillage d'image."""
 
     def __init__(
-        self, threshold: int = 127, max_value: int = 255, threshold_type: str = "binary"
+        self,
+        threshold: int = 127,
+        max_value: int = 255,
+        threshold_type: str = "binary",
     ):
         """
+        Initialise le bloc de seuillage.
+
         Args:
             threshold: Valeur de seuil
             max_value: Valeur maximale
-            threshold_type: 'binary', 'binary_inv', 'trunc', 'tozero', 'tozero_inv'
+            threshold_type: 'binary', 'binary_inv',
+            'trunc', 'tozero', 'tozero_inv'
         """
         self.threshold = threshold
         self.max_value = max_value
@@ -32,8 +40,9 @@ class ThresholdBlock(ProcessingBlock):
         )
 
     def process(
-        self, frame: np.ndarray, result: ProcessingResult = None
+        self, frame: np.ndarray, result: ProcessingResult | None = None
     ) -> ProcessingResult:
+        """Applique un seuillage à l'image."""
         if result is None:
             result = ProcessingResult(frame=frame)
 

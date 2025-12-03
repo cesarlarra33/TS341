@@ -1,5 +1,4 @@
-"""
-Module de stockage pour l'architecture multiprocessus.
+"""Module de stockage pour l'architecture multiprocessus.
 
 Fournit les classes pour sauvegarder les frames vidéo dans des fichiers.
 """

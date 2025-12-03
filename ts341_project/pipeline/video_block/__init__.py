@@ -1,11 +1,8 @@
-"""
-Blocs de traitement pour vidéos (avec mémoire/état)
-"""
+"""Module video_block."""
 
-from .StatefulProcessingBlock import StatefulProcessingBlock
-from .MotionDetectionBlock import MotionDetectionBlock
-from .BackgroundSubtractorBlock import BackgroundSubtractorBlock
 from .CustomDroneBlock import CustomDroneBlock
+from .MotionDetectionBlock import MotionDetectionBlock
+from .StatefulProcessingBlock import StatefulProcessingBlock
 
 __all__ = [
     "StatefulProcessingBlock",

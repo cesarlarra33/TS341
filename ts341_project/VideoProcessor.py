@@ -1,27 +1,30 @@
 """
-NewVideoProcessor - Orchestrateur multiprocessus propre
+NewVideoProcessor - Orchestrateur multiprocessus propre.
 
-Composition de tous les processus avec architecture statique pour éviter les problèmes de pickling.
+Composition de tous les processus avec architecture statique
+pour éviter les problèmes de pickling.
 """
 
-from multiprocessing import Queue, Event
-from typing import Any, Optional, Union, Type
-import cv2
+import multiprocessing as mp
 import time
+from multiprocessing import Queue
+from multiprocessing.synchronize import Event as MPEvent
+from typing import Any, Type, Union
 
-from ts341_project.VideoReader import VideoReader
+import cv2
+
+from ts341_project.display import NewDisplayProcess
 from ts341_project.pipeline.PipelineProcessor import PipelineProcessor
 from ts341_project.pipeline.ProcessingPipeline import ProcessingPipeline
-from ts341_project.display import NewDisplayProcess
 from ts341_project.storage import NewStorageProcess
+from ts341_project.VideoReader import VideoReader
 
 
 class VideoProcessor:
-    """
-    Orchestrateur multiprocessus pour pipeline vidéo.
+    """Orchestrateur multiprocessus pour pipeline vidéo.
 
-    Architecture propre avec méthodes statiques pour éviter les problèmes
-    de pickling (Queue/Event dans self).
+    Architecture propre avec méthodes statiques pour éviter les
+    problèmes de pickling (Queue/Event dans self).
     """
 
     def __init__(
@@ -39,9 +42,12 @@ class VideoProcessor:
         codec: str = "mp4v",
     ):
         """
+        Newvideoprocessor - Orchestrateur multiprocessus propre.
+
         Args:
             source: Source vidéo (chemin, int webcam, etc.)
-            pipeline: Pipeline de traitement (str, ProcessingPipeline instance, ou classe)
+            pipeline: Pipeline de traitement (str, ProcessingPipeline
+            instance, ou classe)
             enable_display: Activer affichage du traité
             enable_display_raw: Activer affichage de l'original (live)
             enable_storage: Activer sauvegarde
@@ -65,13 +71,13 @@ class VideoProcessor:
         self.codec = codec
 
         # Events
-        self.stop_event = Event()
+        self.stop_event: MPEvent = mp.get_context().Event()
 
         # Queues pour le processor (depuis reader)
-        self.reader_queue = Queue(maxsize=10)
+        self.reader_queue: Queue[Any] = Queue(maxsize=10)
 
         # Queues pour les outputs du processor
-        self.output_queues = {}
+        self.output_queues: dict[str, Queue[Any]] = {}
 
         if enable_display:
             self.output_queues["display"] = Queue(maxsize=10)
@@ -80,15 +86,15 @@ class VideoProcessor:
             self.output_queues["storage"] = Queue(maxsize=10)
 
         # Queue dédiée pour l'affichage raw (directement depuis reader)
-        self.raw_display_queue = None
+        self.raw_display_queue: Queue[Any] | None = None
         if enable_display_raw:
             self.raw_display_queue = Queue(maxsize=10)
 
         # Processus (initialisés dans start)
-        self.processes = []
+        self.processes: list[Any] = []
 
     def _detect_video_properties(self):
-        """Détecte les propriétés vidéo pour le writer"""
+        """Détecte les propriétés vidéo pour le writer."""
         is_webcam = isinstance(self.source, int)
 
         cap = cv2.VideoCapture(self.source)
@@ -107,7 +113,7 @@ class VideoProcessor:
         return width, height, fps, is_webcam
 
     def start(self):
-        """Démarre tous les processus"""
+        """Démarre tous les processus."""
         print("[NewVideoProcessor] Initialisation...")
 
         # Détecter propriétés
@@ -116,8 +122,10 @@ class VideoProcessor:
         print(f"[NewVideoProcessor] Source: {self.source}")
         print(f"[NewVideoProcessor] Résolution: {width}x{height} @ {fps} FPS")
         print(
-            f"[NewVideoProcessor] Display Processed: {self.enable_display}, "
-            f"Display Raw: {self.enable_display_raw}, Storage: {self.enable_storage}"
+            f"[NewVideoProcessor] Display Processed: "
+            f"{self.enable_display}, "
+            f"Display Raw: {self.enable_display_raw}, "
+            f"Storage: {self.enable_storage}"
         )
 
         # 1. Créer les consommateurs d'abord
@@ -188,7 +196,7 @@ class VideoProcessor:
         return self
 
     def wait(self):
-        """Attend la fin de tous les processus"""
+        """Attend la fin de tous les processus."""
         print("[NewVideoProcessor] En attente de fin...")
         try:
             for proc in self.processes:
@@ -199,7 +207,7 @@ class VideoProcessor:
             self.stop()
 
     def stop(self):
-        """Arrête tous les processus"""
+        """Arrête tous les processus."""
         print("[NewVideoProcessor] Arrêt demandé...")
         self.stop_event.set()
 
@@ -211,9 +219,9 @@ class VideoProcessor:
         print("[NewVideoProcessor] Tous les processus arrêtés")
 
     def __enter__(self):
-        """Support context manager"""
+        """Support context manager."""
         return self.start()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Support context manager"""
+        """Support context manager."""
         self.stop()
