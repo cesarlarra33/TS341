@@ -203,7 +203,7 @@ def main():
 
     print()
     print("=" * 60)
-    print("✅ Traitement terminé")
+    print("Traitement terminé")
     if enable_storage:
         print(f"Fichier sauvegardé: {output_path}")
     print("=" * 60)

@@ -68,25 +68,7 @@ class MetadataOverlayBlock(ProcessingBlock):
             self._draw_text_with_bg(frame, text_conf, (10, y_offset), self.font_scale, self.thickness, self.text_color, self.bg_color)
             y_offset += line_height
 
-        # 3. Afficher la liste des détections (drone_detections)
-        detections = result.metadata.get("drone_detections", [])
-        if detections:
-            text_list = f"Liste ({len(detections)} détections):"
-            self._draw_text_with_bg(frame, text_list, (10, y_offset), self.font_scale, self.thickness, self.text_color, self.bg_color)
-            y_offset += line_height
-
-            for i, det in enumerate(detections):
-                bbox = det.get("bbox", (0, 0, 0, 0))
-                is_drone = det.get("is_drone", False)
-                num_matches = det.get("num_matches", 0)
-                
-                # Abréger le label pour l'affichage
-                status = "✓ Drone" if is_drone else "○ Mouv"
-                text_item = f"  [{i+1}] {status} | Box: ({bbox[0]}, {bbox[1]}, {bbox[2]}, {bbox[3]}) | Matches: {num_matches}"
-                self._draw_text_with_bg(frame, text_item, (10, y_offset), self.font_scale * 0.8, self.thickness - 1, self.text_color, self.bg_color)
-                y_offset += line_height - 3
-
-        # 4. Afficher les coordonnées brutes en bas à gauche
+        # 3. Afficher les coordonnées brutes en bas à gauche
         drone_center = result.metadata.get("drone_center")
         if drone_center is not None:
             cx, cy = drone_center

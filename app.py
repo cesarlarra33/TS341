@@ -7,8 +7,8 @@ from pathlib import Path
 import re
 from ts341_project.pipeline.Pipelines import list_pipelines
 
-st.set_page_config(page_title="TS341 - Traitement vidéo multiprocessus", layout="wide")
-st.title("TS341 - Traitement vidéo multiprocessus")
+st.set_page_config(page_title="TS341 - Détection de drones", layout="wide")
+st.title("TS341 - Détection de drones")
 
 
 # Layout : colonne gauche (1/3) = paramètres, colonne droite (2/3) = upload + preview + résultat
@@ -70,7 +70,7 @@ with col_main:
             st.write(f"Commande exécutée : {' '.join(cmd)}")
             with st.spinner("Traitement en cours..."):
                 result = subprocess.run(cmd, capture_output=True, text=True)
-                st.text(result.stdout)
+                
                 if result.returncode != 0:
                     st.error(f"Erreur : {result.stderr}")
                 else:
@@ -78,6 +78,7 @@ with col_main:
                         st.video(output_path)
                     else:
                         st.warning("Aucune vidéo de sortie trouvée.")
+            st.text(result.stdout)
             st.session_state['processing'] = False
         elif not uploaded_file:
             st.info("Veuillez uploader une vidéo pour commencer.")

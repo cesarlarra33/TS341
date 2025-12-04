@@ -69,7 +69,7 @@ def main():
             if cv2.waitKey(1) & 0xFF == ord('q'): break
 
     cap.release(); cv2.destroyAllWindows()
-    print("✅ Terminé.")
+    print("Terminé.")
 
 if __name__ == "__main__":
     main()
