@@ -1,5 +1,11 @@
 # TS341 Project
 
+**Équipe :**  
+- ROBLIN Pauline  
+- BASTIEN Hugo  
+- ROUAULT Olivier  
+- LARRAGUETA César 
+
 Après avoir cloné le dépot git (branche main)
 
 ## Exécution avec Docker
