@@ -72,16 +72,16 @@ YOLO : Ne détecte aucun drone au même instant de la vidéo
 
 Dernière détection par éloignement du drone :
 MOG2 + ORB :
-![alt text](.\rapport_images\image3.png)
+![alt text](rapport_images/image3.png)
 YOLO :
-![alt text](.\rapport_images\image2.png)
+![alt text](rapport_images/image2.png)
 
 - **Robustesse aux types de caméras et au background** : Notre pipeline est beaucoup plus performant pour les vidéos fisheye que pour les vidéos classiques, certainement lié au mouvements moins prononcés des arbres dans ce format. Il est également plus performant sur un fond uni (ciel) que devant une foret (mouvement des feuilles.)
 
 Fish eye :
-![alt text](.\rapport_images\image4.png)
+![alt text](rapport_images/image4.png)
 Caméra classique : 
-![alt text](.\rapport_images\image5.png)
+![alt text](rapport_images/image5.png)
 - **Confiance** : Contrairement à YOLO, qui calcule un score de confiance interne, notre pipeline MOG2+ORB utilise une logique simple : 1 boîte détectée → 90%, 2 à 5 boîtes → 100%/nombre de boites, et plus de 6 boîtes → 0%.
 
 La boîte la plus grande est retenue pour placer le centre du drone. Ce choix est simple et peut largement être amélioré mais il permet un premier feedback sur la détection.  
