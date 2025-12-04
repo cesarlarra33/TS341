@@ -10,6 +10,7 @@ from ts341_project.pipeline.image_block.ResizeBlock import ResizeBlock
 from ts341_project.pipeline.image_block.ThresholdBlock import ThresholdBlock
 from ts341_project.pipeline.image_block.MorphologyBlock import MorphologyBlock
 from ts341_project.pipeline.image_block.GrayscaleBlock import GrayscaleBlock
+from ts341_project.pipeline.image_block.MetadataOverlayBlock import MetadataOverlayBlock
 from ts341_project.pipeline.video_block.BackgroundSubtractorBlock import BackgroundSubtractorBlock
 from ts341_project.pipeline.video_block.ContourMatchingBlock import ContourMatchingBlock
 
@@ -72,6 +73,9 @@ class CustomDroneBlock(StatefulProcessingBlock):
             roi_size=(128, 128),
         )
 
+        # Bloc de post-traitement pour afficher les métadonnées
+        self.metadata_overlay = MetadataOverlayBlock(font_scale=0.7, thickness=2)
+
     def _load_patterns(self, pattern_dir: str):
         """Charge les patterns de drone pour le matching ORB (lecture en gray, resize 128x128)"""
         pattern_path = Path(pattern_dir)
@@ -127,5 +131,8 @@ class CustomDroneBlock(StatefulProcessingBlock):
         # Déléguer l'étape finale (contours + matching + annotation) au nouveau bloc
         result.frame = color_frame
         result = self.contour_block.process(result.frame, result)
+
+        # 4) Post-traitement: afficher les métadonnées sur la frame
+        result = self.metadata_overlay.process(result.frame, result)
 
         return result
