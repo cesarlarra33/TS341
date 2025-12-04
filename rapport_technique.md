@@ -65,7 +65,7 @@ Nous avons testé une approche IA avec YOLO, en annotant des frames sur Roboflow
 - **Faux positifs** : YOLO génère très peu de faux positifs et reste précis, détectant au maximum 3 boxes par frame, tandis que MOG2+ORB peut en produire des dizaines, surtout lors de mouvements de caméra.
 
 MOG2 + ORB (sans aucun drone visible):
-![alt text](.\rapport_images\image1.png)
+![alt text](rapport_images/image1.png)
 YOLO : Ne détecte aucun drone au même instant de la vidéo
 - **Faux négatifs** : Au contraire, MOG2+ORB est plus robuste contre les faux négatifs, tandis que YOLO peut perdre le drone par moments, surtout avec un petit dataset d'entrainement. Cependant, lorsque le drone est statique, YOLO détecte mieux que notre pipeline.
 - **Limites de détection** : Sur une même vidéo, les deux algorithmes perdent la détection du drone au même moment quand il devient trop petit (moins d'environ 10 à 20 pixels) sur une image de 1280×720), ce qui est plutôt raisonnable car cela signifie que le drone est loin (moins dangereux).
