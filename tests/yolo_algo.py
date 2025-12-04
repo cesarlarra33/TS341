@@ -4,7 +4,7 @@ import time
 
 model = YOLO("best.pt")
 
-cap = cv2.VideoCapture("dehaut_2.mp4")
+cap = cv2.VideoCapture("video.mp4")
 if not cap.isOpened():
     raise Exception("Impossible d'ouvrir la vidéo")
 
