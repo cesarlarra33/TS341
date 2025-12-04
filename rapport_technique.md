@@ -57,10 +57,18 @@ L’algorithme implémenté dans Docker repose sur les méthodes classiques de t
 ### II.5 Tests d'implémentation de YOLO
 Avec les méthodes classiques de traitement d’image, nous avons vite atteint des limites, surtout dans les vidéos avec des arbres ou des arrière-plans complexes. Le système était surtout confronté à la détection de faux positifs à cause du bruit environnant. 
 
-Nous avons testé une approche IA avec YOLO, en annotant des frames sur Roboflow pour améliorer la robustesse. Cependant, nous ne l’avons pas intégré dans Docker, car ultralytics augmentait la taille de l’image à plus de 30 GB, ce qui n’est pas adapté à un système embarqué.
+Nous avons testé une approche IA avec YOLOv8, en annotant un ensemble de 1176 frames échantillonées à partir de 6 vidéos(fond forêt, ciel, drone statique, drone en mouvement) à l'aide de Roboflow, afin d’évaluer la capacité du modèle à détecter correctement le drone tout en limitant les faux positifs et les faux négatifs dans différents contextes. Cependant, nous ne l’avons pas intégré dans Docker, car ultralytics augmentait la taille de l’image à plus de 30 GB, ce qui n’est pas adapté à un système embarqué.
 
 ---
 ### II.5 Tests et métriques de performances
+Le tableau ci-dessous présente les métriques obtenues sur le jeu de validation pour notre modèle YOLOv8n, entraîné sur 1000 images (train), 155 images (valid) et 21 images (test). Elles décrivent la performance du modèle sur les images annotées et servent de référence pour comparer cette approche à notre pipeline classique. Ces résultats doivent toutefois être interprétés avec prudence, car ils dépendent fortement du dataset et ne garantissent pas les mêmes performances sur les vidéos complètes.
+| Metric     | Value |
+|------------|-------|
+| Precision  | 0.809 |
+| Recall     | 0.648 |
+| mAP50      | 0.734 |
+| mAP50-95   | 0.432 |
+
 - **FPS du traitement** : Que se soit pour YOLO ou pour notre Pipeline de détection, les performances ne permettent pas de faire pleinenement du temps réel car le traitement prend un certain temps. YOLO est nottament plus lent que le traitement classique. Sur un même ordinateur et pour le traitement d'une vidéo de 668 frames (16sec) : YOLO traite l'ensemble des frames en moyenne à 1.7FPS (7min), tandis que notre Pipeline les traite à 6.6 FPS (1min30). 
 - **Faux positifs** : YOLO génère très peu de faux positifs et reste précis, détectant au maximum 3 boxes par frame, tandis que MOG2+ORB peut en produire des dizaines, surtout lors de mouvements de caméra.
 
