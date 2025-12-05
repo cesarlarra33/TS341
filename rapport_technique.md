@@ -60,7 +60,7 @@ Avec les méthodes classiques de traitement d’image, nous avons vite atteint d
 Nous avons testé une approche IA avec YOLOv8, en annotant un ensemble de 1176 frames échantillonées à partir de 6 vidéos(fond forêt, ciel, drone statique, drone en mouvement) à l'aide de Roboflow, afin d’évaluer la capacité du modèle à détecter correctement le drone tout en limitant les faux positifs et les faux négatifs dans différents contextes. Cependant, nous ne l’avons pas intégré dans Docker, car ultralytics augmentait la taille de l’image à plus de 30 GB, ce qui n’est pas adapté à un système embarqué.
 
 ---
-### II.5 Tests et métriques de performances
+### II.6 Tests et métriques de performances
 Le tableau ci-dessous présente les métriques obtenues sur le jeu de validation pour notre modèle YOLOv8n, entraîné sur 1000 images (train), 155 images (valid) et 21 images (test). Elles décrivent la performance du modèle sur les images annotées et servent de référence pour comparer cette approche à notre pipeline classique. Ces résultats doivent toutefois être interprétés avec prudence, car ils dépendent fortement du dataset et ne garantissent pas les mêmes performances sur les vidéos complètes.
 
 | Metric     | Value |
@@ -97,11 +97,11 @@ La boîte la plus grande est retenue pour placer le centre du drone. Ce choix es
 - **Poids de l'application** : 3GB 
 
 
-### II.6 Limites et perspectives 
+### II.7 Limites et perspectives 
 Notre application n’est pas encore capable de fonctionner en temps réel, surtout sur des vidéos longues ou avec l’utilisation de YOLO, qui est assez lent. Le système a également des difficultés lorsque la caméra bouge, ce qui peut rendre la détection du drone moins fiable. Nous n’avons pas eu le temps d’ajouter la prédiction de trajectoire pour anticiper les mouvements dangereux, ni d'unifier les aproches IA et classiques.
 
 La structure modulaire du code facilite toutefois la modification des pipelines et permet d’envisager facilement des améliorations pour un traitement quasi temps réel. Pour l’avenir, il serait possible de réduire la taille de l’image Docker, améliorer la robustesse sur des arrière-plans complexes ou avec du mouvement (en combinant méthodes classiques et IA), et mettre en place un suivi plus précis du drone pour mieux prédire ses déplacements. Ces évolutions rendraient le système plus performant et utilisable dans des conditions proches du réel.
 
 
-### II.7 Remarques
+### II.8 Remarques
 Nous avons tenté de mettre en place des pré-commit hooks en cours de projet mais mypy, dont le rôle est de vérifier le typage lève une erreur sur une erreur relative à ORB, qui quand elle est réglée casse le fonctionnement du code. Nous avons donc décidé de ne pas les garder pour la version finale du projet (présent sur la branche : *conformite-precommit*)
