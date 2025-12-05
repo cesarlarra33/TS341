@@ -1,9 +1,12 @@
 import cv2
 import numpy as np
 from pathlib import Path
+import logging
 
 from ts341_project.pipeline.image_block.ProcessingBlock import ProcessingBlock
 from ts341_project.ProcessingResult import ProcessingResult
+
+logger = logging.getLogger(__name__)
 
 
 class ORBMatchingBlock(ProcessingBlock):
@@ -13,7 +16,13 @@ class ORBMatchingBlock(ProcessingBlock):
     Le bloc écrit dans `result.metadata['orb_match']` un dict {match_found: bool, num_matches: int}.
     """
 
-    def __init__(self, pattern_dir: str = None, min_matches: int = 2, orb_n_features: int = 300, roi_size=(128, 128)):
+    def __init__(
+        self,
+        pattern_dir: str = None,
+        min_matches: int = 2,
+        orb_n_features: int = 300,
+        roi_size=(128, 128),
+    ):
         self.min_matches = min_matches
         self.roi_size = tuple(roi_size)
         self.orb = cv2.ORB_create(nfeatures=orb_n_features)
@@ -26,7 +35,7 @@ class ORBMatchingBlock(ProcessingBlock):
     def _load_patterns(self, pattern_dir: str):
         pattern_path = Path(pattern_dir)
         if not pattern_path.exists():
-            print(f"Dossier patterns introuvable: {pattern_dir}")
+            logger.warning(f"Dossier patterns introuvable: {pattern_dir}")
             return
 
         for file_path in pattern_path.glob("*"):
@@ -40,9 +49,13 @@ class ORBMatchingBlock(ProcessingBlock):
             kp, des = self.orb.detectAndCompute(img_small, None)
             if des is not None:
                 self.patterns.append((kp, des))
-                print(f"Pattern ORB chargé: {file_path.name} ({len(kp)} keypoints)")
+                logger.info(
+                    f"Pattern ORB chargé: {file_path.name} ({len(kp)} keypoints)"
+                )
 
-    def process(self, frame: np.ndarray, result: ProcessingResult = None) -> ProcessingResult:
+    def process(
+        self, frame: np.ndarray, result: ProcessingResult = None
+    ) -> ProcessingResult:
         # frame attendu: grayscale et de taille self.roi_size
         if result is None:
             result = ProcessingResult(frame=frame)
@@ -66,5 +79,8 @@ class ORBMatchingBlock(ProcessingBlock):
                         num_matches = len(good_matches)
                         break
 
-        result.metadata["orb_match"] = {"match_found": match_found, "num_matches": num_matches}
+        result.metadata["orb_match"] = {
+            "match_found": match_found,
+            "num_matches": num_matches,
+        }
         return result

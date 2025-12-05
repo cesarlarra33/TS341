@@ -6,6 +6,7 @@ Affiche les frames traitées en temps réel
 
 from multiprocessing import Process, Queue, Event
 import cv2
+from ts341_project.logging_utils import get_logger
 
 
 class NewDisplayProcess:
@@ -35,12 +36,13 @@ class NewDisplayProcess:
     @staticmethod
     def _display_process(display_queue, stop_event, window_name, max_height):
         """Processus d'affichage"""
-        print(f"[NewDisplayProcess] Démarrage - Fenêtre: {window_name}")
+        logger = get_logger(__name__)
+        logger.info(f"Démarrage - Fenêtre: {window_name}")
 
         try:
             cv2.namedWindow(window_name, cv2.WINDOW_NORMAL)
         except Exception as e:
-            print(f"[NewDisplayProcess] ERREUR fenêtre: {e}")
+            logger.error(f"ERREUR fenêtre: {e}")
             return
 
         frame_count = 0
@@ -51,7 +53,7 @@ class NewDisplayProcess:
 
                 # Fin de stream ?
                 if isinstance(data, dict) and data.get("end_of_stream"):
-                    print("[NewDisplayProcess] END_OF_STREAM reçu")
+                    logger.info("END_OF_STREAM reçu")
                     break
 
                 # Afficher
@@ -68,20 +70,20 @@ class NewDisplayProcess:
                 # ESC pour quitter
                 key = cv2.waitKey(1)
                 if key == 27:
-                    print("[NewDisplayProcess] ESC pressé")
+                    logger.info("ESC pressé")
                     stop_event.set()
                     break
 
                 frame_count += 1
 
                 if frame_count % 100 == 0:
-                    print(f"[NewDisplayProcess] {frame_count} frames affichées")
+                    logger.debug(f"{frame_count} frames affichées")
 
             except:
                 continue  # Queue vide
 
         cv2.destroyWindow(window_name)
-        print(f"[NewDisplayProcess] Arrêté - {frame_count} frames affichées")
+        logger.info(f"Arrêté - {frame_count} frames affichées")
 
     def start(self):
         """Démarre le processus"""

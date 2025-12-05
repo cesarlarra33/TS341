@@ -1,5 +1,4 @@
-"""
-NewPipelineProcessor - Traitement pipeline dans un processus dédié
+"""NewPipelineProcessor - Traitement pipeline dans un processus dédié
 
 Consomme les frames, applique le pipeline, distribue aux consommateurs
 """
@@ -9,6 +8,7 @@ import time
 from typing import Union, Type
 
 from ts341_project.pipeline.ProcessingPipeline import ProcessingPipeline
+from ts341_project.logging_utils import get_logger
 
 
 class PipelineProcessor:
@@ -45,7 +45,8 @@ class PipelineProcessor:
     @staticmethod
     def _processor_process(pipeline, input_queue, output_queues, stop_event):
         """Processus de traitement"""
-        print("[NewPipelineProcessor] Démarré")
+        logger = get_logger(__name__)
+        logger.info("Démarré")
 
         frame_count = 0
         start_time = time.time()
@@ -57,7 +58,7 @@ class PipelineProcessor:
 
                 # Fin de stream ?
                 if isinstance(data, dict) and data.get("end_of_stream"):
-                    print("[NewPipelineProcessor] END_OF_STREAM reçu")
+                    logger.info("END_OF_STREAM reçu")
                     # Propager aux consommateurs
                     for name, queue in output_queues.items():
                         if queue is not None:
@@ -92,16 +93,14 @@ class PipelineProcessor:
                 if frame_count % 100 == 0:
                     elapsed = time.time() - start_time
                     fps = frame_count / elapsed
-                    print(
-                        f"[NewPipelineProcessor] {frame_count} frames | {fps:.1f} FPS"
-                    )
+                    logger.info(f"{frame_count} frames | {fps:.1f} FPS")
 
             except:
                 continue  # Queue vide, on continue
 
         elapsed = time.time() - start_time
         fps = frame_count / elapsed if elapsed > 0 else 0
-        print(f"[NewPipelineProcessor] Arrêté - {frame_count} frames, {fps:.1f} FPS")
+        logger.info(f"Arrêté - {frame_count} frames, {fps:.1f} FPS")
 
     def start(self):
         """Démarre le processus"""

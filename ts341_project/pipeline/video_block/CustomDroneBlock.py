@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from pathlib import Path
+import logging
 
 from ts341_project.ProcessingResult import ProcessingResult
 from ts341_project.pipeline.video_block.StatefulProcessingBlock import (
@@ -8,10 +9,14 @@ from ts341_project.pipeline.video_block.StatefulProcessingBlock import (
 )
 from ts341_project.pipeline.image_block.ResizeBlock import ResizeBlock
 from ts341_project.pipeline.image_block.ThresholdBlock import ThresholdBlock
+
+logger = logging.getLogger(__name__)
 from ts341_project.pipeline.image_block.MorphologyBlock import MorphologyBlock
 from ts341_project.pipeline.image_block.GrayscaleBlock import GrayscaleBlock
 from ts341_project.pipeline.image_block.MetadataOverlayBlock import MetadataOverlayBlock
-from ts341_project.pipeline.video_block.BackgroundSubtractorBlock import BackgroundSubtractorBlock
+from ts341_project.pipeline.video_block.BackgroundSubtractorBlock import (
+    BackgroundSubtractorBlock,
+)
 from ts341_project.pipeline.video_block.ContourMatchingBlock import ContourMatchingBlock
 
 
@@ -31,7 +36,7 @@ class CustomDroneBlock(StatefulProcessingBlock):
         mog2_var_threshold: int = 20,
         orb_n_features: int = 300,  # keypoints
         min_contour_size: int = 5,  # ignorer petits objets
-        resize_width: int = 1280,   # Frame traitée forcée à largeur 1280
+        resize_width: int = 1280,  # Frame traitée forcée à largeur 1280
     ):
         """
         Args:
@@ -80,7 +85,7 @@ class CustomDroneBlock(StatefulProcessingBlock):
         """Charge les patterns de drone pour le matching ORB (lecture en gray, resize 128x128)"""
         pattern_path = Path(pattern_dir)
         if not pattern_path.exists():
-            print(f"Dossier patterns introuvable: {pattern_dir}")
+            logger.warning(f"Dossier patterns introuvable: {pattern_dir}")
             return
 
         for file_path in pattern_path.glob("*"):
@@ -121,9 +126,21 @@ class CustomDroneBlock(StatefulProcessingBlock):
         fg_mask = bg_result.frame
 
         # 3) Nettoyage du masque: seuillage + morphologie (ouverture + fermeture)
-        fg_mask = ThresholdBlock(threshold=250, max_value=255, threshold_type="binary").process(fg_mask).frame
-        fg_mask = MorphologyBlock(operation="opening", kernel_size=3, iterations=1).process(fg_mask).frame
-        fg_mask = MorphologyBlock(operation="closing", kernel_size=3, iterations=1).process(fg_mask).frame
+        fg_mask = (
+            ThresholdBlock(threshold=250, max_value=255, threshold_type="binary")
+            .process(fg_mask)
+            .frame
+        )
+        fg_mask = (
+            MorphologyBlock(operation="opening", kernel_size=3, iterations=1)
+            .process(fg_mask)
+            .frame
+        )
+        fg_mask = (
+            MorphologyBlock(operation="closing", kernel_size=3, iterations=1)
+            .process(fg_mask)
+            .frame
+        )
 
         # Stocker le masque dans les metadata pour que le bloc de contours y accède
         result.metadata["fg_mask"] = fg_mask

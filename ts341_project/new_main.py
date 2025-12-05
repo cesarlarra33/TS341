@@ -26,11 +26,13 @@ import sys
 import argparse
 from pathlib import Path
 from typing import Union, Type
+import logging
 
 # Imports depuis le package ts341_project
 from ts341_project.VideoProcessor import VideoProcessor
 from ts341_project.pipeline import AVAILABLE_PIPELINES
 from ts341_project.pipeline.ProcessingPipeline import ProcessingPipeline
+from ts341_project.logging_utils import setup_logging, shutdown_logging
 
 
 # ============================================================================
@@ -120,6 +122,9 @@ Exemples:
 
 def main():
     """Point d'entrée principal"""
+    # Initialiser le système de logging en premier
+    setup_logging(level=logging.INFO)
+
     args = parse_args()
 
     # Déterminer la source
@@ -140,7 +145,7 @@ def main():
     enable_display = not args.no_display
     enable_display_raw = args.display_raw
     enable_storage = args.save is not None
-    
+
     if args.save:
         output_path = str(Path(args.save).with_suffix(".mp4"))
     else:
@@ -200,6 +205,10 @@ def main():
 
         traceback.print_exc()
         sys.exit(1)
+
+    finally:
+        # Arrêter le système de logging
+        shutdown_logging()
 
     print()
     print("=" * 60)
