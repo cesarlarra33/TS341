@@ -1,5 +1,4 @@
-"""
-NewStorageProcess - Sauvegarde vidéo dans un processus dédié
+"""NewStorageProcess - Sauvegarde vidéo dans un processus dédié
 
 Écrit les frames traitées dans un fichier vidéo
 """
@@ -11,6 +10,7 @@ from pathlib import Path
 import subprocess
 import shlex
 import sys
+from ts341_project.logging_utils import get_logger
 
 
 class NewStorageProcess:
@@ -54,9 +54,10 @@ class NewStorageProcess:
         storage_queue, stop_event, output_path, fps, width, height, codec
     ):
         """Processus de sauvegarde"""
-        print(f"[NewStorageProcess] Démarrage - Sortie: {output_path}")
-
-        # Préparer le writer. On essaie d'ouvrir directement le fichier demandé.
+        logger = get_logger(__name__)
+        logger.info(
+            f"Démarrage - Sortie: {output_path}"
+        )  # Préparer le writer. On essaie d'ouvrir directement le fichier demandé.
         out_path = Path(output_path)
         ext = out_path.suffix.lower()
 
@@ -68,13 +69,17 @@ class NewStorageProcess:
         use_transcode = False
         temp_avi = None
         if not writer.isOpened():
-            print(f"[NewStorageProcess] Warning: VideoWriter unable to open {output_path} with codec '{codec}'")
+            logger.warning(
+                f"VideoWriter unable to open {output_path} with codec '{codec}'"
+            )
             # Fallback: write AVI with MJPG
-            temp_avi = out_path.with_suffix('.avi')
-            mjpg_fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-            writer = cv2.VideoWriter(str(temp_avi), mjpg_fourcc, fps, (width, height), True)
+            temp_avi = out_path.with_suffix(".avi")
+            mjpg_fourcc = cv2.VideoWriter_fourcc(*"MJPG")
+            writer = cv2.VideoWriter(
+                str(temp_avi), mjpg_fourcc, fps, (width, height), True
+            )
             if not writer.isOpened():
-                print(f"[NewStorageProcess] ERREUR: Impossible d'ouvrir ni {output_path} ni {temp_avi}")
+                logger.error(f"Impossible d'ouvrir ni {output_path} ni {temp_avi}")
                 return
             use_transcode = True
 
@@ -87,7 +92,7 @@ class NewStorageProcess:
 
                 # Fin de stream ?
                 if isinstance(data, dict) and data.get("end_of_stream"):
-                    print("[NewStorageProcess] END_OF_STREAM reçu")
+                    logger.info("END_OF_STREAM reçu")
                     break
 
                 # Écrire
@@ -110,9 +115,7 @@ class NewStorageProcess:
                 if frame_count % 100 == 0:
                     elapsed = time.time() - start_time
                     fps_writing = frame_count / elapsed
-                    print(
-                        f"[NewStorageProcess] {frame_count} frames | {fps_writing:.1f} FPS"
-                    )
+                    logger.info(f"{frame_count} frames | {fps_writing:.1f} FPS")
 
             except:
                 continue  # Queue vide
@@ -148,7 +151,7 @@ class NewStorageProcess:
                 return ""
 
         written_codec = probe_video_codec(src_path)
-        print(f"[NewStorageProcess] Codec détecté: '{written_codec}' pour {src_path}")
+        logger.info(f"Codec détecté: '{written_codec}' pour {src_path}")
 
         # Si codec non-h264, essayer un transcodage pour produire un MP4 H.264 lisible
         try:
@@ -175,16 +178,20 @@ class NewStorageProcess:
                 "+faststart",
                 str(final_tmp),
             ]
-            print(f"[NewStorageProcess] Transcodage vers H.264: {' '.join(shlex.quote(a) for a in cmd)}")
+            logger.info(
+                f"Transcodage vers H.264: {' '.join(shlex.quote(a) for a in cmd)}"
+            )
             res = subprocess.run(cmd, capture_output=True, text=True)
             if res.returncode != 0:
-                print(f"[NewStorageProcess] ERREUR ffmpeg (returncode={res.returncode}): {res.stderr}")
-                print(f"[NewStorageProcess] ffmpeg stdout: {res.stdout}")
+                logger.error(
+                    f"ERREUR ffmpeg (returncode={res.returncode}): {res.stderr}"
+                )
+                logger.debug(f"ffmpeg stdout: {res.stdout}")
             else:
                 try:
                     # Remplacer le fichier final par le transcodé
                     final_tmp.replace(out_path)
-                    print(f"[NewStorageProcess] Transcodage terminé et remplacé: {out_path}")
+                    logger.info(f"Transcodage terminé et remplacé: {out_path}")
                     # Supprimer la source si c'était un .avi temporaire
                     if src_path != out_path and src_path.exists():
                         try:
@@ -192,21 +199,23 @@ class NewStorageProcess:
                         except Exception:
                             pass
                 except Exception as e:
-                    print(f"[NewStorageProcess] Impossible de remplacer le fichier final: {e}")
+                    logger.error(f"Impossible de remplacer le fichier final: {e}")
         else:
             # Si on avait écrit dans un .avi temporaire et qu'il est déjà h264 (rare), déplacer
             if src_path != out_path and src_path.exists():
                 try:
                     src_path.replace(out_path)
-                    print(f"[NewStorageProcess] Déplacé {src_path} -> {out_path}")
+                    logger.info(f"Déplacé {src_path} -> {out_path}")
                 except Exception as e:
-                    print(f"[NewStorageProcess] Impossible de déplacer {src_path} -> {out_path}: {e}")
+                    logger.error(
+                        f"Impossible de déplacer {src_path} -> {out_path}: {e}"
+                    )
 
         elapsed = time.time() - start_time
         fps_avg = frame_count / elapsed if elapsed > 0 else 0
 
-        print(f"[NewStorageProcess] Arrêté - {frame_count} frames, {fps_avg:.1f} FPS")
-        print(f"[NewStorageProcess] Fichier: {output_path}")
+        logger.info(f"Arrêté - {frame_count} frames, {fps_avg:.1f} FPS")
+        logger.info(f"Fichier: {output_path}")
 
     def start(self):
         """Démarre le processus"""

@@ -1,12 +1,17 @@
 import cv2
 import numpy as np
 from typing import List
+import logging
 
 from ts341_project.pipeline.image_block.GaussianBlurBlock import GaussianBlurBlock
 from ts341_project.pipeline.image_block.GrayscaleBlock import GrayscaleBlock
 from ts341_project.pipeline.image_block import ProcessingBlock
-from ts341_project.pipeline.video_block.StatefulProcessingBlock import StatefulProcessingBlock
+from ts341_project.pipeline.video_block.StatefulProcessingBlock import (
+    StatefulProcessingBlock,
+)
 from ts341_project.ProcessingResult import ProcessingResult
+
+logger = logging.getLogger(__name__)
 
 
 class MotionDetectionBlock(StatefulProcessingBlock):
@@ -43,7 +48,7 @@ class MotionDetectionBlock(StatefulProcessingBlock):
         # La frame reçue ici est déjà pré-traitée (grayscale et blur par défaut)
         # On s'assure qu'elle est en grayscale au cas où preprocessing personnalisé
         if len(frame.shape) == 3:
-            print("Converting frame to grayscale")
+            logger.debug("Converting frame to grayscale")
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         else:
             gray = frame

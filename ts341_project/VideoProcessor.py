@@ -5,7 +5,7 @@ Composition de tous les processus avec architecture statique pour éviter les pr
 """
 
 from multiprocessing import Queue, Event
-from typing import Any, Optional, Union, Type
+from typing import Any, Union, Type
 import cv2
 import time
 
@@ -14,6 +14,7 @@ from ts341_project.pipeline.PipelineProcessor import PipelineProcessor
 from ts341_project.pipeline.ProcessingPipeline import ProcessingPipeline
 from ts341_project.display import NewDisplayProcess
 from ts341_project.storage import NewStorageProcess
+from ts341_project.logging_utils import get_logger
 
 
 class VideoProcessor:
@@ -64,6 +65,9 @@ class VideoProcessor:
         self.realtime = realtime
         self.codec = codec
 
+        # Logger (toujours actif)
+        self.logger = get_logger(__name__)
+
         # Events
         self.stop_event = Event()
 
@@ -106,17 +110,21 @@ class VideoProcessor:
 
         return width, height, fps, is_webcam
 
+    def _log(self, message: str, level: str = "info"):
+        """Helper pour logger"""
+        getattr(self.logger, level)(message)
+
     def start(self):
         """Démarre tous les processus"""
-        print("[NewVideoProcessor] Initialisation...")
+        self._log("Initialisation...")
 
         # Détecter propriétés
         width, height, fps, is_webcam = self._detect_video_properties()
 
-        print(f"[NewVideoProcessor] Source: {self.source}")
-        print(f"[NewVideoProcessor] Résolution: {width}x{height} @ {fps} FPS")
-        print(
-            f"[NewVideoProcessor] Display Processed: {self.enable_display}, "
+        self._log(f"Source: {self.source}")
+        self._log(f"Résolution: {width}x{height} @ {fps} FPS")
+        self._log(
+            f"Display Processed: {self.enable_display}, "
             f"Display Raw: {self.enable_display_raw}, Storage: {self.enable_storage}"
         )
 
@@ -132,7 +140,7 @@ class VideoProcessor:
             )
             display_raw.start()
             self.processes.append(display_raw)
-            print("[NewVideoProcessor] Display Raw démarré")
+            self._log("Display Raw démarré")
 
         # Display PROCESSED (frames traitées, depuis processor)
         if self.enable_display:
@@ -144,7 +152,7 @@ class VideoProcessor:
             )
             display.start()
             self.processes.append(display)
-            print("[NewVideoProcessor] Display Processed démarré")
+            self._log("Display Processed démarré")
 
         if self.enable_storage:
             storage = NewStorageProcess(
@@ -158,7 +166,7 @@ class VideoProcessor:
             )
             storage.start()
             self.processes.append(storage)
-            print("[NewVideoProcessor] Storage démarré")
+            self._log("Storage démarré")
 
         # 2. Créer le processor
         processor = PipelineProcessor(
@@ -169,7 +177,7 @@ class VideoProcessor:
         )
         processor.start()
         self.processes.append(processor)
-        print("[NewVideoProcessor] Processor démarré")
+        self._log("Processor démarré")
 
         # 3. Créer le reader (producteur) en dernier
         time.sleep(0.5)  # Laisser temps aux consommateurs
@@ -182,25 +190,25 @@ class VideoProcessor:
         )
         reader.start()
         self.processes.append(reader)
-        print("[NewVideoProcessor] Reader démarré")
+        self._log("Reader démarré")
 
-        print("[NewVideoProcessor] Tous les processus actifs ✓")
+        self._log("Tous les processus actifs ✓")
         return self
 
     def wait(self):
         """Attend la fin de tous les processus"""
-        print("[NewVideoProcessor] En attente de fin...")
+        self._log("En attente de fin...")
         try:
             for proc in self.processes:
                 if hasattr(proc, "process"):
                     proc.process.join()
         except KeyboardInterrupt:
-            print("\n[NewVideoProcessor] Interruption utilisateur")
+            self._log("Interruption utilisateur", level="warning")
             self.stop()
 
     def stop(self):
         """Arrête tous les processus"""
-        print("[NewVideoProcessor] Arrêt demandé...")
+        self._log("Arrêt demandé...")
         self.stop_event.set()
 
         # Arrêter dans l'ordre inverse
@@ -208,7 +216,7 @@ class VideoProcessor:
             if hasattr(proc, "stop"):
                 proc.stop()
 
-        print("[NewVideoProcessor] Tous les processus arrêtés")
+        self._log("Tous les processus arrêtés")
 
     def __enter__(self):
         """Support context manager"""

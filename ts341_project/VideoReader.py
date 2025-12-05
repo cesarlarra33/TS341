@@ -8,6 +8,7 @@ import cv2
 import time
 from multiprocessing import Process, Queue, Event
 from typing import Union
+from ts341_project.logging_utils import get_logger
 
 
 class VideoReader:
@@ -57,11 +58,12 @@ class VideoReader:
         source, output_queue, stop_event, realtime, is_webcam, raw_display_queue
     ):
         """Processus de lecture (fonction statique pour multiprocessing)"""
-        print(f"[VideoReader] Démarrage lecture - Source: {source}")
+        logger = get_logger(__name__)
+        logger.info(f"Démarrage lecture - Source: {source}")
 
         cap = cv2.VideoCapture(source)
         if not cap.isOpened():
-            print(f"[VideoReader] ERREUR: Impossible d'ouvrir {source}")
+            logger.error(f"Impossible d'ouvrir {source}")
             return
 
         # Config webcam
@@ -72,8 +74,8 @@ class VideoReader:
         frame_time = 1.0 / fps if realtime and fps > 0 else 0
 
         has_raw_display = raw_display_queue is not None
-        print(
-            f"[VideoReader] FPS: {fps:.1f}, Realtime: {realtime}, Raw Display: {has_raw_display}"
+        logger.info(
+            f"FPS: {fps:.1f}, Realtime: {realtime}, Raw Display: {has_raw_display}"
         )
 
         frame_count = 0
@@ -90,7 +92,7 @@ class VideoReader:
             # Lecture
             ret, frame = cap.read()
             if not ret:
-                print("[VideoReader] Fin de vidéo")
+                logger.info("Fin de vidéo")
                 # Signal de fin aux deux queues
                 output_queue.put({"end_of_stream": True})
                 if has_raw_display:
@@ -125,22 +127,20 @@ class VideoReader:
                 _try_put(raw_display_queue, data.copy())
 
         cap.release()
-        print(f"[VideoReader] Arrêté - {frame_count} frames lues")
+        logger.info(f"Arrêté - {frame_count} frames lues")
 
     def start(self):
         """Démarre le processus de lecture"""
         # D'abord récupérer les infos (dans le process parent)
+        logger = get_logger(__name__)
+
         cap = cv2.VideoCapture(self.source)
         if cap.isOpened():
             self._get_video_info(cap)
             cap.release()
-            print(
-                f"[VideoReader] Infos: {self.width}x{self.height} @ {self.fps:.1f} FPS"
-            )
+            logger.info(f"Infos: {self.width}x{self.height} @ {self.fps:.1f} FPS")
         else:
-            print(
-                f"[VideoReader] WARNING: Impossible de lire les infos de {self.source}"
-            )
+            logger.warning(f"Impossible de lire les infos de {self.source}")
 
         # Lancer le processus de lecture
         self.process = Process(
