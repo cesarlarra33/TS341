@@ -12,7 +12,7 @@ Quand l’application est lancée, elle ouvre automatiquement une interface web 
 - sélectionner le type de traitement à appliquer (pipeline),
 - lancer le traitement,
 - voir la vidéo d’origine et la vidéo traitée,
-- consulter les loggs obtenus (vitesse de traitement, étapes du traitement, stockage...)
+- consulter les logs obtenus (vitesse de traitement, étapes du traitement, stockage...)
 
 
 ## II. Méthodologie
